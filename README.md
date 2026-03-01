@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# İş Takip Sistemi
 
-## Getting Started
+Firma, proje, muhasebe ve personel takibini tek platformda yöneten SaaS uygulaması.
 
-First, run the development server:
+## Teknolojiler
+
+- **Next.js 16** - React framework
+- **Supabase** - Auth, veritabanı, RLS
+- **TypeScript** - Tip güvenliği
+- **Tailwind CSS** - Stil
+
+## Modüller
+
+### İş Takibi
+- Firmalar: İş yaptığınız firmaları ekleyin
+- Projeler: Firma + il bazında projeler (kurulum, montaj, servis, demontaj)
+- Proje hizmetleri takibi
+
+### Muhasebe
+- Faturalar: Firmalara kesilen faturalar
+- Hakedişler: Proje bazlı ödemeler
+- Ürünler & Mal Alımı: Alış/satış fiyatları, stok
+
+### Şirket Giderleri
+- Demirbaş, giyim, araç vergi, yakıt, yemek vb.
+
+### Ön Muhasebe
+- Personel giderleri + ödemeleri
+- Ekip giderleri + ödemeleri
+- Şirket giderleri
+- Fatura karşılaştırması ile kar/zarar hesaplama
+
+### Personel & Ekip Takibi
+- Personel/ekip ekleme, sistem girişi
+- İş kayıtları: Nerede, hangi ilde, ne iş yapıldı
+- Harcamalar: Yakıt, yemek vb. (admin onayı sonrası muhasebeye işlenir)
+- Ödemeler: Personel/ekip dashboard'da görebilir
+- WhatsApp mesaj linki
+
+### Yetkiler
+- **Admin**: Tüm yetkiler
+- **Personel**: Kendi harcamaları, iş kayıtları, ödemeleri
+- **Ekip**: Kendi harcamaları, iş kayıtları, ödemeleri
+
+## Kurulum
+
+### 1. Bağımlılıklar
+
+```bash
+npm install
+```
+
+### 2. Supabase Projesi
+
+1. [Supabase](https://supabase.com) hesabı oluşturun
+2. Yeni proje oluşturun
+3. SQL Editor'de `supabase/migrations/001_initial_schema.sql` dosyasını çalıştırın
+
+### 3. Ortam Değişkenleri
+
+`.env.local` dosyası oluşturun:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### 4. E-posta Doğrulamasını Kapat (Opsiyonel)
+
+E-posta doğrulaması olmadan kayıt için: Supabase Dashboard → Authentication → Providers → Email → **Confirm email** seçeneğini kapatın.
+
+### 5. İlk Admin Kullanıcı
+
+1. Kayıt sayfasından bir hesap oluşturun
+2. Supabase Dashboard → Table Editor → `profiles` tablosuna gidin
+3. Oluşturduğunuz kullanıcının `role` değerini `admin` yapın
+
+### 6. Çalıştırma
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 adresinde uygulama çalışacaktır.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Proje Yapısı
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── dashboard/       # Dashboard sayfaları (rol bazlı)
+│   ├── giris/           # Giriş
+│   ├── kayit/           # Kayıt
+│   └── cikis/           # Çıkış
+├── components/          # Ortak bileşenler
+└── lib/
+    ├── supabase/        # Supabase client
+    └── types.ts         # TypeScript tipleri
+supabase/
+└── migrations/          # Veritabanı migration
+```
 
-## Learn More
+## WhatsApp Entegrasyonu
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Personel ve ekip listelerinde WhatsApp numarası varsa "WhatsApp" linki görünür. `profiles` tablosundaki `whatsapp` veya `phone` alanı kullanılır.

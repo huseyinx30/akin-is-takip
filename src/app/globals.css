@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --primary: 99 102 241;
+  --primary-dark: 79 70 229;
+  --accent: 34 197 94;
+  --accent-warning: 234 179 8;
+  --accent-danger: 239 68 68;
+  --bg-base: 248 250 252;
+  --bg-card: 255 255 255;
+  --text-primary: 15 23 42;
+  --text-secondary: 100 116 139;
+  --border: 226 232 240;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.dark, .dashboard-theme {
+  --bg-base: 15 23 42;
+  --bg-card: 30 41 59;
+  --text-primary: 248 250 252;
+  --text-secondary: 148 163 184;
+  --border: 51 65 85;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dashboard layout uses dark theme */
+.dashboard-theme {
+  background: rgb(var(--bg-base));
+  color: rgb(var(--text-primary));
 }

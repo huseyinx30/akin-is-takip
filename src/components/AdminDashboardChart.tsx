@@ -29,7 +29,7 @@ export function AdminDashboardChart({ gelir, gider }: AdminDashboardChartProps) 
           <Tooltip
             contentStyle={{ backgroundColor: '#fff', border: '1px solid #e3e6f0', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
             labelStyle={{ color: '#333' }}
-            formatter={(value) => [`${Number(value ?? 0).toLocaleString('tr-TR')} ₺`, 'Tutar']}
+            formatter={(value: number | undefined) => [`${Number(value ?? 0).toLocaleString('tr-TR')} ₺`, 'Tutar']}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={120}>
             {data.map((entry, index) => (

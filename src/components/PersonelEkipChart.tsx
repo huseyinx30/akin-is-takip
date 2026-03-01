@@ -30,7 +30,7 @@ export function PersonelEkipChart({ onaylananHarcama, toplamOdeme }: PersonelEki
           <YAxis stroke="#777" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} tick={{ fill: '#555' }} />
           <Tooltip
             contentStyle={{ backgroundColor: '#fff', border: '1px solid #e3e6f0', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
-            formatter={(value: number) => [`${Number(value).toLocaleString('tr-TR')} ₺`, 'Tutar']}
+            formatter={(value: number | undefined) => [`${Number(value ?? 0).toLocaleString('tr-TR')} ₺`, 'Tutar']}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={80}>
             {data.map((entry, index) => (

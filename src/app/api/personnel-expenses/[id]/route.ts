@@ -16,9 +16,8 @@ export async function DELETE(
   const { data: profile } = await supabase.from('profiles').select('role').eq('user_id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Sadece admin harcama silebilir' }, { status: 403 })
 
-  const { data: expense } = await supabase.from('personnel_expenses').select('id, status').eq('id', id).single()
+  const { data: expense } = await supabase.from('personnel_expenses').select('id').eq('id', id).single()
   if (!expense) return NextResponse.json({ error: 'Harcama bulunamadı' }, { status: 404 })
-  if (expense.status !== 'onaylandi') return NextResponse.json({ error: 'Sadece onaylanan harcamalar silinebilir' }, { status: 400 })
 
   const { error } = await supabase.from('personnel_expenses').delete().eq('id', id)
 

@@ -218,14 +218,34 @@ export function TumHarcamalar({ personelId, statusFilter = '' }: { personelId: s
               </span>
               <span className="text-[#333] font-medium w-24 text-right">{Number(e.amount).toLocaleString('tr-TR')} ₺</span>
               {e.status === 'reddedildi' && (
+                <>
+                  <button
+                    onClick={() => handleApprove(e.id)}
+                    disabled={approving === e.id}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#00a65a] hover:bg-[#008d4c] text-white text-xs font-medium disabled:opacity-50"
+                    title="Onayla"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    {approving === e.id ? '...' : 'Onayla'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(e.id)}
+                    disabled={deleting === e.id}
+                    className="p-1.5 rounded text-[#dd4b39] hover:bg-[#dd4b39]/10 disabled:opacity-50"
+                    title="Harcamayı sil"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+              {e.status === 'beklemede' && (
                 <button
-                  onClick={() => handleApprove(e.id)}
-                  disabled={approving === e.id}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#00a65a] hover:bg-[#008d4c] text-white text-xs font-medium disabled:opacity-50"
-                  title="Onayla"
+                  onClick={() => handleDelete(e.id)}
+                  disabled={deleting === e.id}
+                  className="p-1.5 rounded text-[#dd4b39] hover:bg-[#dd4b39]/10 disabled:opacity-50"
+                  title="Harcamayı sil"
                 >
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  {approving === e.id ? '...' : 'Onayla'}
+                  <Trash2 className="w-4 h-4" />
                 </button>
               )}
               {e.status === 'onaylandi' && (

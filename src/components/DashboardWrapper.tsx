@@ -50,7 +50,7 @@ export function DashboardWrapper({ role, userName, pendingCount = 0, pendingExpe
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-[#ecf0f5]">
+    <div className="flex min-h-screen bg-[#ecf0f5] overflow-x-hidden">
       <DashboardSidebar
         role={role}
         userName={userName}

@@ -90,11 +90,11 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
         />
       )}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col bg-[#222d32] text-[#b8c7ce] transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col bg-[#222d32] text-[#b8c7ce] transition-transform duration-300 lg:translate-x-0 overflow-hidden shrink-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full min-w-0 overflow-hidden">
           <div className="p-4 border-b border-[#1a2226]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-[#3c8dbc] flex items-center justify-center text-white font-bold">
@@ -116,7 +116,7 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
               />
             </div>
           </div>
-          <nav className="flex-1 overflow-y-auto py-2">
+          <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2 min-w-0">
             <p className="px-4 py-2 text-xs font-semibold text-[#4b646f] uppercase tracking-wider">
               Ana Menü
             </p>
@@ -144,7 +144,7 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" />
-                      <p className="text-xs font-semibold uppercase tracking-wider flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider flex-1 min-w-0 truncate">
                         {item.label}
                       </p>
                       {isExpanded ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
@@ -169,7 +169,7 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
                             }`}
                           >
                             <ChevronRight className={`w-4 h-4 shrink-0 ${isActive ? 'text-white/80' : 'text-[#666]'}`} />
-                            <span className="text-sm">{child.label}</span>
+                            <span className="text-sm min-w-0 truncate">{child.label}</span>
                           </Link>
                         )
                       })}
@@ -189,7 +189,7 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="w-5 h-5 shrink-0 text-[#b8c7ce]" />
-                    <span className="text-sm">{item.label}</span>
+                    <span className="text-sm min-w-0 truncate">{item.label}</span>
                   </div>
                   {showBadge && (
                     <span className="px-2 py-0.5 bg-red-500 rounded text-xs font-bold text-white">

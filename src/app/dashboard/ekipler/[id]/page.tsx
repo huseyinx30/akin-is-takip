@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { WhatsAppLink } from '@/components/WhatsAppLink'
 import { OnayBekleyenHarcamalar } from './OnayBekleyenHarcamalar'
 import { OdemeEkle } from './OdemeEkle'
+import { EkipSil } from './EkipSil'
 import { Receipt, CheckCircle, Clock, Wallet, TrendingUp, XCircle } from 'lucide-react'
 
 export default async function EkipDetayPage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,13 +34,17 @@ export default async function EkipDetayPage({ params }: { params: Promise<{ id: 
       <Link href="/dashboard/ekipler" className="text-[#3c8dbc] hover:underline mb-4 inline-block font-medium">← Ekiplere dön</Link>
 
       <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-6 mb-6">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-wrap justify-between items-start gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[#333]">{profile.full_name}</h1>
             <p className="text-[#555] mt-1">{profile.phone || '-'}</p>
             {profile.whatsapp && (
               <WhatsAppLink phone={profile.whatsapp} className="mt-2" />
             )}
+          </div>
+          <div className="shrink-0 flex items-center gap-3">
+            <OdemeEkle ekipId={id} />
+            <EkipSil ekipId={id} ekipAdi={profile.full_name} />
           </div>
         </div>
       </div>
@@ -74,7 +79,6 @@ export default async function EkipDetayPage({ params }: { params: Promise<{ id: 
       </div>
 
       <OnayBekleyenHarcamalar ekipId={id} />
-      <OdemeEkle ekipId={id} />
 
       <div className="grid md:grid-cols-2 gap-8 mt-8">
         <div className="bg-white rounded-lg shadow-md border border-[#e3e6f0] p-6">

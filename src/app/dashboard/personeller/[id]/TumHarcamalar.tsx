@@ -24,7 +24,7 @@ const categories = [
   { value: 'diger', label: 'Diğer' },
 ]
 
-export function TumHarcamalar({ personelId }: { personelId: string }) {
+export function TumHarcamalar({ personelId, statusFilter = '' }: { personelId: string; statusFilter?: '' | 'onaylandi' | 'beklemede' | 'reddedildi' }) {
   const [expenses, setExpenses] = useState<any[]>([])
   const [cities, setCities] = useState<{ id: string; name: string }[]>([])
   const [showAll, setShowAll] = useState(false)
@@ -37,6 +37,7 @@ export function TumHarcamalar({ personelId }: { personelId: string }) {
     cityId: '',
     category: '',
     search: '',
+    status: '',
   })
   const supabase = createClient()
 
@@ -56,8 +57,11 @@ export function TumHarcamalar({ personelId }: { personelId: string }) {
     load()
   }, [personelId])
 
+  const effectiveStatus = statusFilter || filters.status
+
   const filteredExpenses = useMemo(() => {
     return (expenses || []).filter((e) => {
+      if (effectiveStatus && e.status !== effectiveStatus) return false
       if (filters.dateFrom && e.expense_date < filters.dateFrom) return false
       if (filters.dateTo && e.expense_date > filters.dateTo) return false
       if (filters.cityId && e.city_id !== filters.cityId) return false
@@ -71,12 +75,12 @@ export function TumHarcamalar({ personelId }: { personelId: string }) {
       }
       return true
     })
-  }, [expenses, filters])
+  }, [expenses, filters, effectiveStatus])
 
-  const hasActiveFilters = filters.dateFrom || filters.dateTo || filters.cityId || filters.category || filters.search
+  const hasActiveFilters = filters.dateFrom || filters.dateTo || filters.cityId || filters.category || filters.search || effectiveStatus
 
   const clearFilters = () => {
-    setFilters({ dateFrom: '', dateTo: '', cityId: '', category: '', search: '' })
+    setFilters({ dateFrom: '', dateTo: '', cityId: '', category: '', search: '', status: '' })
   }
 
   const handleDelete = async (id: string) => {

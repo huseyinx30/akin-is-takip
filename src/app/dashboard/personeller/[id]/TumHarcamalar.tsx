@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Receipt, Trash2, ChevronDown, ChevronUp, Filter, X, CheckCircle } from 'lucide-react'
+import { Receipt, Trash2, ChevronDown, ChevronUp, Filter, X, CheckCircle, XCircle } from 'lucide-react'
 
 const statusLabels: Record<string, string> = {
   beklemede: 'Beklemede',
@@ -29,8 +29,8 @@ export function TumHarcamalar({ personelId, statusFilter = '' }: { personelId: s
   const [cities, setCities] = useState<{ id: string; name: string }[]>([])
   const [showAll, setShowAll] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
-  const [deleting, setDeleting] = useState<string | null>(null)
-  const [approving, setApproving] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
@@ -83,23 +83,59 @@ export function TumHarcamalar({ personelId, statusFilter = '' }: { personelId: s
     setFilters({ dateFrom: '', dateTo: '', cityId: '', category: '', search: '', status: '' })
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Bu harcamayı silmek istediğinize emin misiniz?')) return
-    setDeleting(id)
-    const res = await fetch(`/api/personnel-expenses/${id}`, { method: 'DELETE' })
-    setDeleting(null)
-    if (!res.ok) return
-    setExpenses((prev) => prev.filter((e) => e.id !== id))
-    window.location.reload()
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
-  const handleApprove = async (id: string) => {
-    setApproving(id)
+  const toggleSelectAll = () => {
+    if (selectedIds.size >= displayList.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(displayList.map((e) => e.id)))
+    }
+  }
+
+  const handleBulkApprove = async () => {
+    if (!selectedIds.size || !confirm(`${selectedIds.size} harcamayı onaylamak istediğinize emin misiniz?`)) return
+    setBulkLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user?.id).single()
-    await supabase.from('personnel_expenses').update({ status: 'onaylandi', approved_by: profile?.id, approved_at: new Date().toISOString() }).eq('id', id)
-    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, status: 'onaylandi' } : e))
-    setApproving(null)
+    for (const id of selectedIds) {
+      await supabase.from('personnel_expenses').update({ status: 'onaylandi', approved_by: profile?.id, approved_at: new Date().toISOString() }).eq('id', id)
+    }
+    setExpenses((prev) => prev.map((e) => selectedIds.has(e.id) ? { ...e, status: 'onaylandi' } : e))
+    setSelectedIds(new Set())
+    setBulkLoading(false)
+  }
+
+  const handleBulkReject = async () => {
+    if (!selectedIds.size || !confirm(`${selectedIds.size} harcamayı reddetmek istediğinize emin misiniz?`)) return
+    setBulkLoading(true)
+    for (const id of selectedIds) {
+      await supabase.from('personnel_expenses').update({ status: 'reddedildi' }).eq('id', id)
+    }
+    setExpenses((prev) => prev.map((e) => selectedIds.has(e.id) ? { ...e, status: 'reddedildi' } : e))
+    setSelectedIds(new Set())
+    setBulkLoading(false)
+  }
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.size || !confirm(`${selectedIds.size} harcamayı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return
+    setBulkLoading(true)
+    const idsToDelete = Array.from(selectedIds)
+    const deletedIds: string[] = []
+    for (const id of idsToDelete) {
+      const res = await fetch(`/api/personnel-expenses/${id}`, { method: 'DELETE' })
+      if (res.ok) deletedIds.push(id)
+    }
+    setExpenses((prev) => prev.filter((e) => !deletedIds.includes(e.id)))
+    setSelectedIds(new Set())
+    setBulkLoading(false)
   }
 
   const displayList = showAll ? filteredExpenses : filteredExpenses.slice(0, 10)
@@ -135,6 +171,42 @@ export function TumHarcamalar({ personelId, statusFilter = '' }: { personelId: s
           )}
         </div>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div className="mb-4 p-4 bg-[#3c8dbc]/5 rounded-lg border border-[#3c8dbc]/30 flex flex-wrap items-center gap-3">
+          <span className="text-[#333] font-medium">{selectedIds.size} harcama seçildi</span>
+          <button
+            onClick={handleBulkApprove}
+            disabled={bulkLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00a65a] hover:bg-[#008d4c] text-white text-sm font-medium disabled:opacity-50"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Onayla
+          </button>
+          <button
+            onClick={handleBulkReject}
+            disabled={bulkLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f39c12] hover:bg-[#e08e0b] text-white text-sm font-medium disabled:opacity-50"
+          >
+            <XCircle className="w-4 h-4" />
+            Reddet
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            disabled={bulkLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#dd4b39] hover:bg-[#c23321] text-white text-sm font-medium disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4" />
+            Sil
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-[#555] hover:text-[#333] text-sm font-medium"
+          >
+            Seçimi kaldır
+          </button>
+        </div>
+      )}
 
       {showFilters && (
         <div className="mb-6 p-4 bg-[#f8f9fc] rounded-lg border border-[#e3e6f0]">
@@ -199,65 +271,45 @@ export function TumHarcamalar({ personelId, statusFilter = '' }: { personelId: s
       )}
 
       <div className="space-y-2">
+        {displayList.length > 0 && (
+          <div className="flex items-center gap-3 pb-2 border-b border-[#e3e6f0]">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-[#555] hover:text-[#333]">
+              <input
+                type="checkbox"
+                checked={displayList.length > 0 && selectedIds.size === displayList.length}
+                onChange={toggleSelectAll}
+                className="rounded border-[#d2d6de] text-[#3c8dbc] focus:ring-[#3c8dbc]"
+              />
+              Tümünü seç
+            </label>
+          </div>
+        )}
         {displayList.map((e) => (
           <div
             key={e.id}
-            className="flex justify-between items-center p-3 bg-[#f8f9fc] rounded-lg border border-[#e3e6f0] group"
+            className={`flex justify-between items-center p-3 rounded-lg border group ${selectedIds.has(e.id) ? 'bg-[#3c8dbc]/10 border-[#3c8dbc]/40' : 'bg-[#f8f9fc] border-[#e3e6f0]'}`}
           >
-            <div className="flex-1 min-w-0">
-              <span className="text-[#333] font-medium block truncate">{e.description}</span>
-              <span className="text-[#555] text-sm">
-                {e.expense_date}
-                {e.city?.name && ` • ${e.city.name}`}
-                {e.category && ` • ${categories.find((c) => c.value === e.category)?.label || e.category}`}
-              </span>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <input
+                type="checkbox"
+                checked={selectedIds.has(e.id)}
+                onChange={() => toggleSelect(e.id)}
+                className="rounded border-[#d2d6de] text-[#3c8dbc] focus:ring-[#3c8dbc] shrink-0"
+              />
+              <div className="min-w-0">
+                <span className="text-[#333] font-medium block truncate">{e.description}</span>
+                <span className="text-[#555] text-sm">
+                  {e.expense_date}
+                  {e.city?.name && ` • ${e.city.name}`}
+                  {e.category && ` • ${categories.find((c) => c.value === e.category)?.label || e.category}`}
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <span className={`text-xs px-2 py-1 rounded font-medium ${statusColors[e.status] || ''}`}>
                 {statusLabels[e.status] || e.status}
               </span>
               <span className="text-[#333] font-medium w-24 text-right">{Number(e.amount).toLocaleString('tr-TR')} ₺</span>
-              {e.status === 'reddedildi' && (
-                <>
-                  <button
-                    onClick={() => handleApprove(e.id)}
-                    disabled={approving === e.id}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#00a65a] hover:bg-[#008d4c] text-white text-xs font-medium disabled:opacity-50"
-                    title="Onayla"
-                  >
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    {approving === e.id ? '...' : 'Onayla'}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(e.id)}
-                    disabled={deleting === e.id}
-                    className="p-1.5 rounded text-[#dd4b39] hover:bg-[#dd4b39]/10 disabled:opacity-50"
-                    title="Harcamayı sil"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-              {e.status === 'beklemede' && (
-                <button
-                  onClick={() => handleDelete(e.id)}
-                  disabled={deleting === e.id}
-                  className="p-1.5 rounded text-[#dd4b39] hover:bg-[#dd4b39]/10 disabled:opacity-50"
-                  title="Harcamayı sil"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-              {e.status === 'onaylandi' && (
-                <button
-                  onClick={() => handleDelete(e.id)}
-                  disabled={deleting === e.id}
-                  className="p-1.5 rounded text-[#dd4b39] hover:bg-[#dd4b39]/10 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                  title="Harcamayı sil"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
             </div>
           </div>
         ))}

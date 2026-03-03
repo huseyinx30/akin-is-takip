@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { MesajListe } from './MesajListe'
 import { MesajGonder } from './MesajGonder'
 
@@ -35,7 +36,9 @@ export default async function MesajlarPage() {
         {profile.role === 'admin' && <MesajGonder profiles={profiles} />}
       </div>
 
-      <MesajListe messages={msgError ? [] : (messages || [])} currentProfileId={profile.id} />
+      <Suspense fallback={<div className="animate-pulse h-48 bg-[#f8f9fc] rounded-lg" />}>
+        <MesajListe messages={msgError ? [] : (messages || [])} currentProfileId={profile.id} />
+      </Suspense>
     </div>
   )
 }

@@ -103,19 +103,18 @@ export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendi
 
   const handleNotificationClick = async (n: Notification) => {
     setOpenDropdown(null)
-    if (n.link_url) {
-      await fetch(`/api/notifications/${n.id}/read`, { method: 'POST' })
-      setNotifications((prev) => prev.filter((x) => x.id !== n.id))
-      router.push(n.link_url)
-      router.refresh()
-    }
+    await fetch(`/api/notifications/${n.id}/read`, { method: 'POST' })
+    setNotifications((prev) => prev.filter((x) => x.id !== n.id))
+    const targetUrl = n.link_url || '/dashboard/bildirimler'
+    router.push(targetUrl)
+    router.refresh()
   }
 
   const handleMessageClick = async (m: Message) => {
     setOpenDropdown(null)
     await fetch(`/api/messages/${m.id}/read`, { method: 'POST' })
     setMessages((prev) => prev.filter((x) => x.id !== m.id))
-    router.push('/dashboard/mesajlar')
+    router.push(`/dashboard/mesajlar?msg=${m.id}`)
     router.refresh()
   }
 

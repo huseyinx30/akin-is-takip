@@ -348,100 +348,100 @@ export default async function DashboardPage() {
       {(role === 'personel' || role === 'ekip') && personelEkipStats && (
         <>
           {/* Özet Kartları */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-            <Link href="/dashboard/harcamalarim" className="block">
-              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 hover:shadow-lg hover:border-[#dd4b39]/30 transition-all">
-                <div className="flex justify-between items-start">
-                  <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 items-stretch">
+            <Link href="/dashboard/harcamalarim" className="block h-full">
+              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 h-full min-h-[165px] flex flex-col hover:shadow-lg hover:border-[#dd4b39]/30 transition-all">
+                <div className="flex justify-between items-start flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[#555] text-sm font-medium">Toplam Harcama</p>
-                    <p className="text-xl font-bold text-[#333] mt-1">{personelEkipStats.toplamHarcama.toLocaleString('tr-TR')} ₺</p>
+                    <p className="text-xl font-bold text-[#333] mt-1 break-keep">{personelEkipStats.toplamHarcama.toLocaleString('tr-TR')} ₺</p>
                     <p className="text-xs text-[#555] mt-1">Tüm harcamalar</p>
                   </div>
-                  <div className="w-11 h-11 rounded-xl bg-[#dd4b39]/15 flex items-center justify-center">
+                  <div className="w-11 h-11 shrink-0 rounded-xl bg-[#dd4b39]/15 flex items-center justify-center">
                     <Receipt className="w-6 h-6 text-[#dd4b39]" />
                   </div>
                 </div>
               </div>
             </Link>
 
-            <Link href="/dashboard/harcamalarim" className="block">
-              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 hover:shadow-lg hover:border-[#00a65a]/30 transition-all">
-                <div className="flex justify-between items-start">
-                  <div>
+            <Link href="/dashboard/harcamalarim" className="block h-full">
+              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 h-full min-h-[165px] flex flex-col hover:shadow-lg hover:border-[#00a65a]/30 transition-all">
+                <div className="flex justify-between items-start flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[#555] text-sm font-medium">Onaylanan Harcama</p>
-                    <p className="text-xl font-bold text-[#00a65a] mt-1">{personelEkipStats.onaylananHarcama.toLocaleString('tr-TR')} ₺</p>
+                    <p className="text-xl font-bold text-[#00a65a] mt-1 break-keep">{personelEkipStats.onaylananHarcama.toLocaleString('tr-TR')} ₺</p>
                     <p className="text-xs text-[#555] mt-1 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Onaylı
+                      <CheckCircle className="w-3 h-3 shrink-0" /> Onaylı
                     </p>
                   </div>
-                  <div className="w-11 h-11 rounded-xl bg-[#00a65a]/15 flex items-center justify-center">
+                  <div className="w-11 h-11 shrink-0 rounded-xl bg-[#00a65a]/15 flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-[#00a65a]" />
                   </div>
                 </div>
               </div>
             </Link>
 
-            <Link href="/dashboard/harcamalarim" className="block">
-              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 hover:shadow-lg hover:border-[#f39c12]/30 transition-all">
-                <div className="flex justify-between items-start">
-                  <div>
+            <Link href="/dashboard/harcamalarim" className="block h-full">
+              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 h-full min-h-[165px] flex flex-col hover:shadow-lg hover:border-[#f39c12]/30 transition-all">
+                <div className="flex justify-between items-start flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[#555] text-sm font-medium">Bekleyen Harcama</p>
-                    <p className="text-xl font-bold text-[#f39c12] mt-1">{personelEkipStats.bekleyenHarcama.toLocaleString('tr-TR')} ₺</p>
+                    <p className="text-xl font-bold text-[#f39c12] mt-1 break-keep">{personelEkipStats.bekleyenHarcama.toLocaleString('tr-TR')} ₺</p>
                     <p className="text-xs text-[#555] mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {personelEkipStats.bekleyenAdet} adet
+                      <Clock className="w-3 h-3 shrink-0" /> {personelEkipStats.bekleyenAdet} adet
                     </p>
                   </div>
-                  <div className="w-11 h-11 rounded-xl bg-[#f39c12]/15 flex items-center justify-center">
+                  <div className="w-11 h-11 shrink-0 rounded-xl bg-[#f39c12]/15 flex items-center justify-center">
                     <Clock className="w-6 h-6 text-[#f39c12]" />
                   </div>
                 </div>
               </div>
             </Link>
 
-            <Link href="/dashboard/harcamalarim?durum=reddedildi" className="block">
-              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 hover:shadow-lg hover:border-[#dd4b39]/30 transition-all">
-                <div className="flex justify-between items-start">
-                  <div>
+            <Link href="/dashboard/harcamalarim?durum=reddedildi" className="block h-full">
+              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 h-full min-h-[165px] flex flex-col hover:shadow-lg hover:border-[#dd4b39]/30 transition-all">
+                <div className="flex justify-between items-start flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[#555] text-sm font-medium">Reddedilen Harcama</p>
-                    <p className="text-xl font-bold text-[#dd4b39] mt-1">{personelEkipStats.reddedilenHarcama.toLocaleString('tr-TR')} ₺</p>
+                    <p className="text-xl font-bold text-[#dd4b39] mt-1 break-keep">{personelEkipStats.reddedilenHarcama.toLocaleString('tr-TR')} ₺</p>
                     <p className="text-xs text-[#555] mt-1 flex items-center gap-1">
-                      <XCircle className="w-3 h-3" /> {personelEkipStats.reddedilenAdet} adet
+                      <XCircle className="w-3 h-3 shrink-0" /> {personelEkipStats.reddedilenAdet} adet
                     </p>
                   </div>
-                  <div className="w-11 h-11 rounded-xl bg-[#dd4b39]/15 flex items-center justify-center">
+                  <div className="w-11 h-11 shrink-0 rounded-xl bg-[#dd4b39]/15 flex items-center justify-center">
                     <XCircle className="w-6 h-6 text-[#dd4b39]" />
                   </div>
                 </div>
               </div>
             </Link>
 
-            <Link href="/dashboard/odemelerim" className="block">
-              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 hover:shadow-lg hover:border-[#00c0ef]/30 transition-all">
-                <div className="flex justify-between items-start">
-                  <div>
+            <Link href="/dashboard/odemelerim" className="block h-full">
+              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 h-full min-h-[165px] flex flex-col hover:shadow-lg hover:border-[#00c0ef]/30 transition-all">
+                <div className="flex justify-between items-start flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[#555] text-sm font-medium">Alınan Ödemeler</p>
-                    <p className="text-xl font-bold text-[#00c0ef] mt-1">{personelEkipStats.toplamOdeme.toLocaleString('tr-TR')} ₺</p>
+                    <p className="text-xl font-bold text-[#00c0ef] mt-1 break-keep">{personelEkipStats.toplamOdeme.toLocaleString('tr-TR')} ₺</p>
                     <p className="text-xs text-[#555] mt-1">Toplam tahsilat</p>
                   </div>
-                  <div className="w-11 h-11 rounded-xl bg-[#00c0ef]/15 flex items-center justify-center">
+                  <div className="w-11 h-11 shrink-0 rounded-xl bg-[#00c0ef]/15 flex items-center justify-center">
                     <Wallet className="w-6 h-6 text-[#00c0ef]" />
                   </div>
                 </div>
               </div>
             </Link>
 
-            <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5">
-              <div className="flex justify-between items-start">
-                <div>
+            <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 h-full min-h-[165px] flex flex-col">
+              <div className="flex justify-between items-start flex-1">
+                <div className="min-w-0 flex-1">
                   <p className="text-[#555] text-sm font-medium">Kalan Alacak</p>
-                  <p className={`text-xl font-bold mt-1 ${personelEkipStats.kalanAlacak >= 0 ? 'text-[#3c8dbc]' : 'text-[#dd4b39]'}`}>
+                  <p className={`text-xl font-bold mt-1 break-keep ${personelEkipStats.kalanAlacak >= 0 ? 'text-[#3c8dbc]' : 'text-[#dd4b39]'}`}>
                     {personelEkipStats.kalanAlacak.toLocaleString('tr-TR')} ₺
                   </p>
                   <p className="text-xs text-[#555] mt-1">
                     {personelEkipStats.kalanAlacak >= 0 ? 'Onaylı harcama - Ödeme' : 'Fazla ödeme'}
                   </p>
                 </div>
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${personelEkipStats.kalanAlacak >= 0 ? 'bg-[#3c8dbc]/15' : 'bg-[#dd4b39]/15'}`}>
+                <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${personelEkipStats.kalanAlacak >= 0 ? 'bg-[#3c8dbc]/15' : 'bg-[#dd4b39]/15'}`}>
                   <TrendingUp className={`w-6 h-6 ${personelEkipStats.kalanAlacak >= 0 ? 'text-[#3c8dbc]' : 'text-[#dd4b39]'}`} />
                 </div>
               </div>

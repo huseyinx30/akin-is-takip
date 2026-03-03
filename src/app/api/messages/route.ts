@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     type: 'mesaj',
     title: 'Yeni Mesaj',
     body: content.trim().slice(0, 100) + (content.length > 100 ? '...' : ''),
-    link_url: '/dashboard/mesajlar',
+    link_url: `/dashboard/mesajlar?msg=${msg.id}`,
     related_id: msg.id,
   }])
 

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { MessageCircle, Send, Inbox } from 'lucide-react'
 
 interface Message {
@@ -21,6 +21,17 @@ interface MesajListeProps {
 export function MesajListe({ messages, currentProfileId }: MesajListeProps) {
   const [localMessages, setLocalMessages] = useState(messages)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const highlightMsgId = searchParams.get('msg')
+
+  useEffect(() => {
+    if (highlightMsgId) {
+      const el = document.getElementById(`msg-${highlightMsgId}`)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+  }, [highlightMsgId])
 
   const handleClick = async (m: Message) => {
     if (m.receiver_id === currentProfileId && !m.read_at) {
@@ -47,6 +58,7 @@ export function MesajListe({ messages, currentProfileId }: MesajListeProps) {
             const isUnread = isReceived && !m.read_at
             return (
               <div
+                id={`msg-${m.id}`}
                 key={m.id}
                 onClick={() => handleClick(m)}
                 className={`flex gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${

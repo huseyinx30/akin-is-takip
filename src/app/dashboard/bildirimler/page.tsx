@@ -17,13 +17,14 @@ export default async function BildirimlerPage() {
     .from('notifications')
     .select('*')
     .eq('profile_id', profile.id)
+    .neq('type', 'mesaj')
     .order('created_at', { ascending: false })
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#333]">Bildirimler</h1>
-        <p className="text-[#555] text-sm mt-0.5">Tüm bildirimleriniz</p>
+        <p className="text-[#555] text-sm mt-0.5">Harcama onay ve red bildirimleri</p>
       </div>
 
       <BildirimListe initialNotifications={error ? [] : (notifications || [])} />

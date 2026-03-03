@@ -34,8 +34,8 @@ export default async function DashboardLayout({
 
   if (profileData) {
     const [notifRes, notifCountRes, msgRes, msgCountRes] = await Promise.all([
-      supabase.from('notifications').select('id, type, title, body, link_url, read_at, created_at').eq('profile_id', profileData.id).is('read_at', null).order('created_at', { ascending: false }).limit(5),
-      supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('profile_id', profileData.id).is('read_at', null),
+      supabase.from('notifications').select('id, type, title, body, link_url, read_at, created_at').eq('profile_id', profileData.id).neq('type', 'mesaj').is('read_at', null).order('created_at', { ascending: false }).limit(5),
+      supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('profile_id', profileData.id).neq('type', 'mesaj').is('read_at', null),
       supabase.from('messages').select('id, content, sender_id, receiver_id, read_at, created_at').eq('receiver_id', profileData.id).is('read_at', null).order('created_at', { ascending: false }).limit(5),
       supabase.from('messages').select('*', { count: 'exact', head: true }).eq('receiver_id', profileData.id).is('read_at', null),
     ])

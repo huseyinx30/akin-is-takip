@@ -160,7 +160,7 @@ export interface WorkLog {
   work_date: string
   description: string
   work_type: ServiceType
-  hours?: number
+  work_quantity?: number
   status: 'beklemede' | 'onaylandi' | 'reddedildi'
   approved_by?: string
   approved_at?: string

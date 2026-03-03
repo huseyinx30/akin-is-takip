@@ -19,7 +19,7 @@ const statusLabels: Record<string, string> = {
 export default function IsKayitlarimPage() {
   const [logs, setLogs] = useState<any[]>([])
   const [profile, setProfile] = useState<{ id: string; role: string } | null>(null)
-  const [projects, setProjects] = useState<{ id: string; name: string }[]>([])
+  const [projects, setProjects] = useState<{ id: string; name: string; city_id: string | null }[]>([])
   const [cities, setCities] = useState<{ id: string; name: string }[]>([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
@@ -28,7 +28,7 @@ export default function IsKayitlarimPage() {
     work_date: new Date().toISOString().split('T')[0],
     work_type: 'kurulum',
     description: '',
-    hours: '',
+    work_quantity: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +47,7 @@ export default function IsKayitlarimPage() {
       setLogs(logsData || [])
 
       const [{ data: projData }, { data: cityData }] = await Promise.all([
-        supabase.from('projects').select('id, name').eq('status', 'aktif').order('name'),
+        supabase.from('projects').select('id, name, city_id').eq('status', 'aktif').order('name'),
         supabase.from('cities').select('id, name').order('name'),
       ])
       setProjects(projData || [])
@@ -66,8 +66,12 @@ export default function IsKayitlarimPage() {
 
     const { error } = await supabase.from('work_logs').insert([{
       [idField]: profile.id,
-      ...form,
-      hours: form.hours ? parseFloat(form.hours) : null,
+      project_id: form.project_id,
+      city_id: form.city_id || null,
+      work_date: form.work_date,
+      work_type: form.work_type,
+      description: form.description,
+      work_quantity: form.work_quantity ? parseInt(form.work_quantity, 10) : null,
     }])
 
     if (error) {
@@ -76,7 +80,7 @@ export default function IsKayitlarimPage() {
       return
     }
 
-    setForm({ project_id: '', city_id: '', work_date: new Date().toISOString().split('T')[0], work_type: 'kurulum', description: '', hours: '' })
+    setForm({ project_id: '', city_id: '', work_date: new Date().toISOString().split('T')[0], work_type: 'kurulum', description: '', work_quantity: '' })
     setShowForm(false)
     const { data } = await supabase.from('work_logs').select('*, project:projects(name), city:cities(name)').eq(idField, profile.id).order('work_date', { ascending: false })
     setLogs(data || [])
@@ -106,19 +110,34 @@ export default function IsKayitlarimPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[#333] mb-1">Proje *</label>
-              <select value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value })} required
-                className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] focus:outline-none focus:border-[#3c8dbc] focus:ring-1 focus:ring-[#3c8dbc] bg-white">
+              <select
+                value={form.project_id}
+                onChange={(e) => {
+                  const projectId = e.target.value
+                  const proj = projects.find((p) => p.id === projectId)
+                  setForm({
+                    ...form,
+                    project_id: projectId,
+                    city_id: proj?.city_id || '',
+                  })
+                }}
+                required
+                className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] focus:outline-none focus:border-[#3c8dbc] focus:ring-1 focus:ring-[#3c8dbc] bg-white"
+              >
                 <option value="">Seçin</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#333] mb-1">İl *</label>
-              <select value={form.city_id} onChange={(e) => setForm({ ...form, city_id: e.target.value })} required
-                className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] focus:outline-none focus:border-[#3c8dbc] focus:ring-1 focus:ring-[#3c8dbc] bg-white">
-                <option value="">Seçin</option>
-                {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <label className="block text-sm font-medium text-[#333] mb-1">İl</label>
+              <input
+                type="text"
+                value={form.project_id ? (cities.find((c) => c.id === form.city_id)?.name || '-') : ''}
+                readOnly
+                disabled
+                className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#555] bg-[#f8f9fc] cursor-not-allowed"
+                placeholder={form.project_id ? '' : 'Önce proje seçin'}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -141,9 +160,17 @@ export default function IsKayitlarimPage() {
               className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] focus:outline-none focus:border-[#3c8dbc] focus:ring-1 focus:ring-[#3c8dbc] resize-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#333] mb-1">Saat</label>
-            <input type="number" step="0.5" value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] focus:outline-none focus:border-[#3c8dbc] focus:ring-1 focus:ring-[#3c8dbc]" />
+            <label className="block text-sm font-medium text-[#333] mb-1">İş Adedi *</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={form.work_quantity}
+              onChange={(e) => setForm({ ...form, work_quantity: e.target.value })}
+              required
+              placeholder="Yaptığınız iş sayısı"
+              className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] focus:outline-none focus:border-[#3c8dbc] focus:ring-1 focus:ring-[#3c8dbc]"
+            />
           </div>
           <button type="submit" disabled={loading} className="px-6 py-2.5 rounded-lg bg-[#3c8dbc] hover:bg-[#367fa9] text-white font-medium disabled:opacity-50">
             {loading ? 'Kaydediliyor...' : 'Kaydet'}
@@ -157,7 +184,7 @@ export default function IsKayitlarimPage() {
             <div className="flex justify-between items-start">
               <div>
                 <div className="font-medium text-[#333]">{log.project?.name || '-'} • {log.city?.name || '-'}</div>
-                <div className="text-[#555] text-sm mt-1">{log.work_date} • {log.work_type}</div>
+                <div className="text-[#555] text-sm mt-1">{log.work_date} • {log.work_type}{log.work_quantity != null ? ` • ${log.work_quantity} adet` : ''}</div>
                 <p className="text-[#555] mt-2">{log.description}</p>
               </div>
               <span className={`text-xs px-2 py-1 rounded font-medium ${log.status === 'onaylandi' ? 'bg-[#00a65a]/15 text-[#00a65a]' : log.status === 'reddedildi' ? 'bg-[#dd4b39]/15 text-[#dd4b39]' : 'bg-[#f39c12]/15 text-[#f39c12]'}`}>

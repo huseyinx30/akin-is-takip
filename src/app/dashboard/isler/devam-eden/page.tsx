@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { DevamEdenIslerClient } from './DevamEdenIslerClient'
 
 export const dynamic = 'force-dynamic'
@@ -39,10 +40,12 @@ export default async function DevamEdenIslerPage() {
         <h1 className="text-2xl font-bold text-[#333]">Devam Eden İşler</h1>
         <p className="text-[#555] text-sm mt-0.5">Onay bekleyen iş kayıtları (projelere göre)</p>
       </div>
-      <DevamEdenIslerClient
-        initialProjects={projects}
-        profiles={profiles || []}
-      />
+      <Suspense fallback={<div className="animate-pulse h-48 bg-[#f8f9fc] rounded-lg" />}>
+        <DevamEdenIslerClient
+          initialProjects={projects}
+          profiles={profiles || []}
+        />
+      </Suspense>
     </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, Pencil, Trash2, CheckCircle, FolderKanban } from 'lucide-react'
 
 const workTypes: Record<string, string> = {
@@ -46,8 +46,10 @@ interface DevamEdenIslerClientProps {
 }
 
 export function DevamEdenIslerClient({ initialProjects, profiles }: DevamEdenIslerClientProps) {
+  const searchParams = useSearchParams()
+  const projectParam = searchParams.get('project')
   const [projects, setProjects] = useState(initialProjects)
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(projectParam || null)
   const [logs, setLogs] = useState<WorkLog[]>([])
   const [loading, setLoading] = useState(false)
   const [filterProfileId, setFilterProfileId] = useState<string>('')

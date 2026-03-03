@@ -119,10 +119,13 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
               if (item.children && item.children.length > 0) {
                 const isParentActive = item.children.some((c) => pathname === c.href || pathname.startsWith(c.href + '/'))
                 return (
-                  <div key={item.label}>
-                    <p className="px-4 py-2 text-xs font-semibold text-[#4b646f] uppercase tracking-wider mt-2">
-                      {item.label}
-                    </p>
+                  <div key={item.label} className="mt-1">
+                    <div className="flex items-center gap-2 px-4 py-2">
+                      <Icon className="w-4 h-4 shrink-0 text-[#4b646f]" />
+                      <p className="text-xs font-semibold text-[#4b646f] uppercase tracking-wider">
+                        {item.label}
+                      </p>
+                    </div>
                     {item.children.map((child) => {
                       const isActive = pathname === child.href || pathname.startsWith(child.href + '/')
                       return (

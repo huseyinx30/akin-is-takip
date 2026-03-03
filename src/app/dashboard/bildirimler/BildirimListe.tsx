@@ -2,16 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, CheckCircle, XCircle } from 'lucide-react'
+import { Bell, CheckCircle, XCircle, ClipboardList } from 'lucide-react'
 
 const typeIcons: Record<string, React.ElementType> = {
   harcama_onaylandi: CheckCircle,
   harcama_reddedildi: XCircle,
+  is_kaydi: ClipboardList,
 }
 
 const typeColors: Record<string, string> = {
   harcama_onaylandi: 'text-[#00a65a] bg-[#00a65a]/15',
   harcama_reddedildi: 'text-[#dd4b39] bg-[#dd4b39]/15',
+  is_kaydi: 'text-[#3c8dbc] bg-[#3c8dbc]/15',
 }
 
 interface Notification {

@@ -115,7 +115,7 @@ export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendi
                 )}
               </button>
               {openDropdown === 'expenses' && (
-                <div className="absolute right-0 mt-1 w-80 bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
+                <div className="fixed left-4 right-4 top-[5.5rem] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-1 sm:w-80 w-auto max-w-none sm:max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
                   <div className="px-4 py-2 border-b border-[#e3e6f0]">
                     <p className="font-semibold text-[#333]">Onay Bekleyen Harcamalar</p>
                     <p className="text-xs text-[#555]">{pendingCount} adet harcama onay bekliyor</p>
@@ -166,7 +166,7 @@ export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendi
               </span>
             </button>
             {openDropdown === 'bell' && (
-              <div className="absolute right-0 mt-1 w-72 bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
+              <div className="fixed left-4 right-4 top-[5.5rem] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-1 sm:w-72 w-auto max-w-none sm:max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
                 <div className="px-4 py-2 border-b border-[#e3e6f0]">
                   <p className="font-semibold text-[#333]">Bildirimler</p>
                   <p className="text-xs text-[#555]">12 okunmamış bildirim</p>
@@ -194,7 +194,7 @@ export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendi
               </span>
             </button>
             {openDropdown === 'chat' && (
-              <div className="absolute right-0 mt-1 w-72 bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
+              <div className="fixed left-4 right-4 top-[5.5rem] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-1 sm:w-72 w-auto max-w-none sm:max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
                 <div className="px-4 py-2 border-b border-[#e3e6f0]">
                   <p className="font-semibold text-[#333]">Sohbetler</p>
                   <p className="text-xs text-[#555]">15 okunmamış sohbet</p>

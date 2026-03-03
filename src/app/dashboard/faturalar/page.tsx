@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { Eye, Pencil, Trash2 } from 'lucide-react'
+import { FaturaSilButton } from './FaturaSilButton'
 
 export default async function FaturalarPage() {
   const supabase = await createClient()
@@ -38,6 +40,7 @@ export default async function FaturalarPage() {
               <th className="text-left p-4 text-[#333] font-semibold">Tarih</th>
               <th className="text-left p-4 text-[#333] font-semibold">Tutar</th>
               <th className="text-left p-4 text-[#333] font-semibold">Durum</th>
+              <th className="text-left p-4 text-[#333] font-semibold">İşlemler</th>
             </tr>
           </thead>
           <tbody>
@@ -61,6 +64,17 @@ export default async function FaturalarPage() {
                   >
                     {statusLabels[inv.status] || inv.status}
                   </span>
+                </td>
+                <td className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/faturalar/${inv.id}`} className="p-1.5 rounded hover:bg-[#3c8dbc]/10 text-[#3c8dbc]" title="Görüntüle">
+                      <Eye className="w-4 h-4" />
+                    </Link>
+                    <Link href={`/dashboard/faturalar/${inv.id}?edit=1`} className="p-1.5 rounded hover:bg-[#f39c12]/10 text-[#f39c12]" title="Düzenle">
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                    <FaturaSilButton faturaId={inv.id} faturaNo={inv.invoice_no} />
+                  </div>
                 </td>
               </tr>
             ))}

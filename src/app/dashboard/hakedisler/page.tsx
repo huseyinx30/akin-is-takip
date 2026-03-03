@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { Eye, Pencil } from 'lucide-react'
+import { HakedisSilButton } from './HakedisSilButton'
 
 export default async function HakedislerPage() {
   const supabase = await createClient()
@@ -79,6 +81,7 @@ export default async function HakedislerPage() {
               <th className="text-left p-4 text-[#333] font-semibold">Tarih</th>
               <th className="text-left p-4 text-[#333] font-semibold">Tutar</th>
               <th className="text-left p-4 text-[#333] font-semibold">Açıklama</th>
+              <th className="text-left p-4 text-[#333] font-semibold">İşlemler</th>
             </tr>
           </thead>
           <tbody>
@@ -99,6 +102,17 @@ export default async function HakedislerPage() {
                 <td className="p-4 text-[#555]">{p.payment_date}</td>
                 <td className="p-4 text-[#555]">{Number(p.amount).toLocaleString('tr-TR')} ₺</td>
                 <td className="p-4 text-[#555] text-sm">{p.description || '-'}</td>
+                <td className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/hakedisler/${p.id}`} className="p-1.5 rounded hover:bg-[#3c8dbc]/10 text-[#3c8dbc]" title="Görüntüle">
+                      <Eye className="w-4 h-4" />
+                    </Link>
+                    <Link href={`/dashboard/hakedisler/${p.id}?edit=1`} className="p-1.5 rounded hover:bg-[#f39c12]/10 text-[#f39c12]" title="Düzenle">
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                    <HakedisSilButton hakedisId={p.id} hakedisTutar={p.amount} />
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

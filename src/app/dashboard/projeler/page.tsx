@@ -27,7 +27,7 @@ export default async function ProjelerPage() {
     <div>
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#333]">Projeler & İşler</h1>
+          <h1 className="text-2xl font-bold text-[#333]">Projeler</h1>
           <p className="text-[#555] text-sm mt-0.5">Proje listesi</p>
         </div>
         {isAdmin && (

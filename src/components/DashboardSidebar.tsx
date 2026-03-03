@@ -22,23 +22,29 @@ import {
   ChevronDown,
   ChevronRight,
   Receipt,
+  Briefcase,
   Bell,
   MessageCircle,
 } from 'lucide-react'
 import type { UserRole } from '@/lib/types'
 
 interface NavItem {
-  href: string
+  href?: string
   label: string
   icon: React.ElementType
   roles: UserRole[]
   badge?: number
+  children?: { href: string; label: string }[]
 }
 
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Ana Sayfa', icon: LayoutDashboard, roles: ['admin', 'personel', 'ekip'] },
   { href: '/dashboard/firmalar', label: 'Firmalar', icon: Building2, roles: ['admin'] },
-  { href: '/dashboard/projeler', label: 'Projeler & İşler', icon: FolderKanban, roles: ['admin', 'personel', 'ekip'] },
+  { href: '/dashboard/projeler', label: 'Projeler', icon: FolderKanban, roles: ['admin', 'personel', 'ekip'] },
+  { href: '/dashboard/isler/devam-eden', label: 'İşler', icon: Briefcase, roles: ['admin'], children: [
+    { href: '/dashboard/isler/devam-eden', label: 'Devam Eden İşler' },
+    { href: '/dashboard/isler/tamamlanan', label: 'Tamamlanan İşler' },
+  ]},
   { href: '/dashboard/faturalar', label: 'Faturalar', icon: FileText, roles: ['admin'] },
   { href: '/dashboard/hakedisler', label: 'Hakedişler', icon: Wallet, roles: ['admin'] },
   { href: '/dashboard/urunler', label: 'Ürünler & Mal Alımı', icon: Package, roles: ['admin'] },
@@ -107,13 +113,41 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
               Ana Menü
             </p>
             {filteredNav.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               const Icon = item.icon
-              const showBadge = item.href.includes('onay-bekleyen-harcamalar') && pendingCount > 0
+              const showBadge = item.href?.includes('onay-bekleyen-harcamalar') && pendingCount > 0
+
+              if (item.children && item.children.length > 0) {
+                const isParentActive = item.children.some((c) => pathname === c.href || pathname.startsWith(c.href + '/'))
+                return (
+                  <div key={item.label}>
+                    <p className="px-4 py-2 text-xs font-semibold text-[#4b646f] uppercase tracking-wider mt-2">
+                      {item.label}
+                    </p>
+                    {item.children.map((child) => {
+                      const isActive = pathname === child.href || pathname.startsWith(child.href + '/')
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          onClick={onClose}
+                          className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded transition-colors ${
+                            isActive ? 'bg-[#1e282c] text-[#fff]' : 'hover:bg-[#1e282c] hover:text-white'
+                          }`}
+                        >
+                          <ChevronRight className="w-4 h-4 shrink-0 text-[#666]" />
+                          <span className="text-sm">{child.label}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )
+              }
+
+              const isActive = pathname === item.href || (item.href && pathname.startsWith(item.href + '/'))
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href!}
                   onClick={onClose}
                   className={`flex items-center justify-between px-4 py-2.5 mx-2 rounded transition-colors ${
                     isActive ? 'bg-[#1e282c] text-[#fff]' : 'hover:bg-[#1e282c] hover:text-white'

@@ -63,6 +63,8 @@ const breadcrumbMap: Record<string, string> = {
   '/dashboard/odemelerim': 'Ödemelerim',
   '/dashboard/bildirimler': 'Bildirimler',
   '/dashboard/mesajlar': 'Mesajlar',
+  '/dashboard/isler/devam-eden': 'Devam Eden İşler',
+  '/dashboard/isler/tamamlanan': 'Tamamlanan İşler',
 }
 
 export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendingExpenses = [], role, notificationCount = 0, messageCount = 0, recentNotifications = [], recentMessages = [] }: DashboardHeaderProps) {

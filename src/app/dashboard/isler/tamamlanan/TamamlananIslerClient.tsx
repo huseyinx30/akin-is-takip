@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Eye, Pencil, Trash2, FolderKanban } from 'lucide-react'
+import { Eye, Pencil, Trash2, FolderKanban, CheckCircle2 } from 'lucide-react'
 
 const workTypes: Record<string, string> = {
   kurulum: 'Kurulum',
@@ -16,6 +16,9 @@ interface Project {
   id: string
   name: string
   count: number
+  total_adet: number
+  hakedis_yapilan: number
+  hakedis_bekleyen: number
 }
 
 interface Profile {
@@ -34,6 +37,7 @@ interface WorkLog {
   description: string
   work_quantity: number | null
   status: string
+  hakedis_yapildi?: boolean
   project?: { name: string }
   city?: { name: string }
   personel?: { full_name: string }
@@ -51,6 +55,11 @@ export function TamamlananIslerClient({ initialProjects, profiles }: TamamlananI
   const [logs, setLogs] = useState<WorkLog[]>([])
   const [loading, setLoading] = useState(false)
   const [filterProfileId, setFilterProfileId] = useState<string>('')
+  const [filterHakedis, setFilterHakedis] = useState<'tumu' | 'bekleyen' | 'yapilan'>('tumu')
+  const [filterDateFrom, setFilterDateFrom] = useState<string>('')
+  const [filterDateTo, setFilterDateTo] = useState<string>('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [hakedisLoading, setHakedisLoading] = useState(false)
   const [detailLog, setDetailLog] = useState<WorkLog | null>(null)
   const [editLog, setEditLog] = useState<WorkLog | null>(null)
   const [editForm, setEditForm] = useState({ work_date: '', work_type: 'kurulum', description: '', work_quantity: '' })
@@ -81,7 +90,66 @@ export function TamamlananIslerClient({ initialProjects, profiles }: TamamlananI
     } else {
       setLogs([])
     }
+    setSelectedIds(new Set())
   }, [selectedProjectId, loadLogs])
+
+  const filteredLogs = logs.filter((log) => {
+    if (filterHakedis === 'yapilan' && !log.hakedis_yapildi) return false
+    if (filterHakedis === 'bekleyen' && log.hakedis_yapildi) return false
+    if (filterDateFrom && log.work_date < filterDateFrom) return false
+    if (filterDateTo && log.work_date > filterDateTo) return false
+    return true
+  })
+
+  const selectableLogs = filteredLogs.filter((log) => !log.hakedis_yapildi)
+  const allSelected = selectableLogs.length > 0 && selectableLogs.every((l) => selectedIds.has(l.id))
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (allSelected) setSelectedIds(new Set())
+    else setSelectedIds(new Set(selectableLogs.map((l) => l.id)))
+  }
+
+  const handleHakedisYapildi = async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) {
+      alert('Lütfen en az bir iş kaydı seçin.')
+      return
+    }
+    setHakedisLoading(true)
+    const res = await fetch('/api/work-logs/hakedis-yapildi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    })
+    setHakedisLoading(false)
+    if (res.ok) {
+      setSelectedIds(new Set())
+      router.refresh()
+      loadLogs()
+      const proj = projects.find((p) => p.id === selectedProjectId)
+      if (proj) {
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === selectedProjectId
+              ? { ...p, hakedis_yapilan: p.hakedis_yapilan + ids.length, hakedis_bekleyen: Math.max(0, p.hakedis_bekleyen - ids.length) }
+              : p
+          )
+        )
+      }
+    } else {
+      const d = await res.json()
+      alert(d.error || 'Hakediş işaretleme başarısız')
+    }
+  }
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bu iş kaydını silmek istediğinize emin misiniz?')) return
@@ -159,7 +227,11 @@ export function TamamlananIslerClient({ initialProjects, profiles }: TamamlananI
               <FolderKanban className="w-5 h-5 text-[#00a65a]" />
               <span className="font-medium text-[#333]">{p.name}</span>
             </div>
-            <p className="text-sm text-[#555] mt-1">{p.count} tamamlanan iş</p>
+            <div className="text-sm text-[#555] mt-2 space-y-0.5">
+              <p><strong>{p.count}</strong> tamamlanan iş · <strong>{p.total_adet}</strong> toplam adet</p>
+              <p className="text-[#00a65a]"><strong>{p.hakedis_yapilan}</strong> hakedişi yapılmış</p>
+              <p className="text-[#f39c12]"><strong>{p.hakedis_bekleyen}</strong> hakediş bekliyor</p>
+            </div>
           </button>
         ))}
       </div>
@@ -172,49 +244,140 @@ export function TamamlananIslerClient({ initialProjects, profiles }: TamamlananI
 
       {selectedProjectId && (
         <div className="bg-white rounded-lg shadow-md border border-[#e3e6f0] p-6">
+          {(() => {
+            const proj = projects.find((p) => p.id === selectedProjectId)
+            return proj ? (
+              <div className="mb-4 p-4 rounded-lg bg-[#f8f9fc] border border-[#e3e6f0]">
+                <h3 className="font-semibold text-[#333] mb-2">{proj.name} - Proje Detayları</h3>
+                <div className="flex flex-wrap gap-6 text-sm">
+                  <span><strong>{proj.count}</strong> toplam tamamlanan iş</span>
+                  <span><strong>{proj.total_adet}</strong> toplam adet</span>
+                  <span className="text-[#00a65a]"><strong>{proj.hakedis_yapilan}</strong> hakedişi yapılmış</span>
+                  <span className="text-[#f39c12]"><strong>{proj.hakedis_bekleyen}</strong> hakediş bekliyor</span>
+                </div>
+              </div>
+            ) : null
+          })()}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
             <h2 className="font-semibold text-[#333]">
               {projects.find((p) => p.id === selectedProjectId)?.name} - Tamamlanan İşler
             </h2>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-[#555]">Personel/Ekip:</label>
-              <select
-                value={filterProfileId}
-                onChange={(e) => setFilterProfileId(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-[#d2d6de] text-sm"
-              >
-                <option value="">Tümü</option>
-                {profiles.map((pr) => (
-                  <option key={pr.id} value={pr.id}>{pr.full_name} ({pr.role})</option>
-                ))}
-              </select>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[#555]">Tarih:</label>
+                <input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => setFilterDateFrom(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-[#d2d6de] text-sm"
+                  placeholder="Başlangıç"
+                />
+                <span className="text-[#555]">-</span>
+                <input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => setFilterDateTo(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-[#d2d6de] text-sm"
+                  placeholder="Bitiş"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[#555]">Hakediş:</label>
+                <select
+                  value={filterHakedis}
+                  onChange={(e) => setFilterHakedis(e.target.value as 'tumu' | 'bekleyen' | 'yapilan')}
+                  className="px-3 py-2 rounded-lg border border-[#d2d6de] text-sm"
+                >
+                  <option value="tumu">Tümü</option>
+                  <option value="bekleyen">Hakediş bekleyen</option>
+                  <option value="yapilan">Hakedişi yapılanlar</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[#555]">Personel/Ekip:</label>
+                <select
+                  value={filterProfileId}
+                  onChange={(e) => setFilterProfileId(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-[#d2d6de] text-sm"
+                >
+                  <option value="">Tümü</option>
+                  {profiles.map((pr) => (
+                    <option key={pr.id} value={pr.id}>{pr.full_name} ({pr.role})</option>
+                  ))}
+                </select>
+              </div>
+              {selectableLogs.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleHakedisYapildi}
+                  disabled={selectedIds.size === 0 || hakedisLoading}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00a65a] text-white font-medium hover:bg-[#008d4c] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  {hakedisLoading ? 'İşleniyor...' : `Hakediş yapıldı (${selectedIds.size})`}
+                </button>
+              )}
             </div>
           </div>
 
           {loading ? (
             <p className="text-[#555] py-8 text-center">Yükleniyor...</p>
-          ) : logs.length === 0 ? (
-            <p className="text-[#555] py-8 text-center">Bu projede tamamlanan iş kaydı yok.</p>
+          ) : filteredLogs.length === 0 ? (
+            <p className="text-[#555] py-8 text-center">
+              {logs.length === 0 ? 'Bu projede tamamlanan iş kaydı yok.' : 'Bu filtreye uygun kayıt yok.'}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="bg-[#f8f9fc] border-b border-[#e3e6f0]">
+                    {selectableLogs.length > 0 && (
+                      <th className="text-left p-3">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          onChange={toggleSelectAll}
+                          className="rounded border-[#d2d6de]"
+                        />
+                      </th>
+                    )}
                     <th className="text-left p-3 text-sm font-semibold text-[#333]">Tarih</th>
                     <th className="text-left p-3 text-sm font-semibold text-[#333]">İş Tipi</th>
                     <th className="text-left p-3 text-sm font-semibold text-[#333]">Personel/Ekip</th>
                     <th className="text-left p-3 text-sm font-semibold text-[#333]">Adet</th>
+                    <th className="text-left p-3 text-sm font-semibold text-[#333]">Hakediş</th>
                     <th className="text-left p-3 text-sm font-semibold text-[#333]">Açıklama</th>
                     <th className="text-left p-3 text-sm font-semibold text-[#333]">İşlemler</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {logs.map((log) => (
+                  {filteredLogs.map((log) => (
                     <tr key={log.id} className="border-b border-[#e3e6f0] hover:bg-[#f8f9fc]">
+                      {selectableLogs.length > 0 && (
+                        <td className="p-3">
+                          {!log.hakedis_yapildi ? (
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(log.id)}
+                              onChange={() => toggleSelect(log.id)}
+                              className="rounded border-[#d2d6de]"
+                            />
+                          ) : (
+                            <span className="text-[#00a65a]">✓</span>
+                          )}
+                        </td>
+                      )}
                       <td className="p-3 text-sm text-[#555]">{log.work_date}</td>
                       <td className="p-3 text-sm">{workTypes[log.work_type] || log.work_type}</td>
                       <td className="p-3 text-sm">{getAssigneeName(log)}</td>
                       <td className="p-3 text-sm">{log.work_quantity ?? '-'}</td>
+                      <td className="p-3 text-sm">
+                        {log.hakedis_yapildi ? (
+                          <span className="text-[#00a65a] font-medium">Hakedişi yapılmıştır</span>
+                        ) : (
+                          <span className="text-[#f39c12]">Hakediş bekliyor</span>
+                        )}
+                      </td>
                       <td className="p-3 text-sm text-[#555] max-w-[200px] truncate">{log.description}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-2">
@@ -265,6 +428,7 @@ export function TamamlananIslerClient({ initialProjects, profiles }: TamamlananI
               <div><dt className="text-[#555]">İş Tipi</dt><dd className="font-medium">{workTypes[detailLog.work_type] || detailLog.work_type}</dd></div>
               <div><dt className="text-[#555]">Personel/Ekip</dt><dd className="font-medium">{getAssigneeName(detailLog)}</dd></div>
               <div><dt className="text-[#555]">İş Adedi</dt><dd className="font-medium">{detailLog.work_quantity ?? '-'}</dd></div>
+              <div><dt className="text-[#555]">Hakediş Durumu</dt><dd className="font-medium">{detailLog.hakedis_yapildi ? <span className="text-[#00a65a]">Hakedişi yapılmıştır</span> : <span className="text-[#f39c12]">Hakediş bekliyor</span>}</dd></div>
               <div><dt className="text-[#555]">Açıklama</dt><dd className="font-medium whitespace-pre-wrap">{detailLog.description}</dd></div>
             </dl>
             <button onClick={() => setDetailLog(null)} className="mt-6 px-4 py-2 rounded-lg bg-[#3c8dbc] text-white font-medium hover:bg-[#367fa9]">Kapat</button>

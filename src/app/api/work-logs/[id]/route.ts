@@ -16,7 +16,7 @@ export async function PATCH(
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Sadece admin düzenleyebilir' }, { status: 403 })
 
   const body = await req.json()
-  const { action, ...updateData } = body as { action?: 'onayla' | 'reddet'; project_id?: string; city_id?: string; work_date?: string; work_type?: string; description?: string; work_quantity?: number }
+  const { action, ...updateData } = body as { action?: 'onayla' | 'reddet'; project_id?: string; city_id?: string; work_date?: string; work_type?: string; description?: string; work_quantity?: number; hakedis_yapildi?: boolean }
 
   let dataToUpdate: Record<string, unknown> = {}
 
@@ -31,6 +31,7 @@ export async function PATCH(
     if (updateData.work_type !== undefined) dataToUpdate.work_type = updateData.work_type
     if (updateData.description !== undefined) dataToUpdate.description = updateData.description
     if (updateData.work_quantity !== undefined) dataToUpdate.work_quantity = updateData.work_quantity
+    if (updateData.hakedis_yapildi !== undefined) dataToUpdate.hakedis_yapildi = updateData.hakedis_yapildi
   }
 
   if (Object.keys(dataToUpdate).length === 0) return NextResponse.json({ error: 'Güncellenecek alan yok' }, { status: 400 })

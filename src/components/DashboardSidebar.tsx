@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -72,6 +72,14 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
   const pathname = usePathname()
   const filteredNav = navItems.filter((item) => item.roles.includes(role))
 
+  const islerItem = filteredNav.find((i) => i.label === 'İşler')
+  const isIslerActive = islerItem?.children?.some((c) => pathname === c.href || pathname.startsWith(c.href + '/'))
+  const [islerExpanded, setIslerExpanded] = useState(!!isIslerActive)
+
+  useEffect(() => {
+    if (isIslerActive) setIslerExpanded(true)
+  }, [isIslerActive])
+
   return (
     <>
       {isOpen && (
@@ -118,30 +126,53 @@ export function DashboardSidebar({ role, userName, isOpen, onClose, pendingCount
 
               if (item.children && item.children.length > 0) {
                 const isParentActive = item.children.some((c) => pathname === c.href || pathname.startsWith(c.href + '/'))
+                const isExpanded = item.label === 'İşler' ? islerExpanded : true
+                const toggleExpand = item.label === 'İşler' ? () => setIslerExpanded((v) => !v) : undefined
+
+                const isDevamEden = (href: string) => href.includes('devam-eden')
+                const isTamamlanan = (href: string) => href.includes('tamamlanan')
+
                 return (
                   <div key={item.label} className="mt-1">
-                    <div className="flex items-center gap-2 px-4 py-2">
-                      <Icon className="w-4 h-4 shrink-0 text-[#4b646f]" />
-                      <p className="text-xs font-semibold text-[#4b646f] uppercase tracking-wider">
+                    <button
+                      type="button"
+                      onClick={toggleExpand}
+                      className={`w-full flex items-center gap-2 px-4 py-2.5 mx-2 rounded transition-colors text-left ${
+                        isExpanded || isParentActive
+                          ? 'bg-red-600/90 text-white hover:bg-[#374850]'
+                          : 'hover:bg-[#374850] text-[#b8c7ce]'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <p className="text-xs font-semibold uppercase tracking-wider flex-1">
                         {item.label}
                       </p>
-                    </div>
-                    {item.children.map((child) => {
-                      const isActive = pathname === child.href || pathname.startsWith(child.href + '/')
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          onClick={onClose}
-                          className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded transition-colors ${
-                            isActive ? 'bg-[#1e282c] text-[#fff]' : 'hover:bg-[#1e282c] hover:text-white'
-                          }`}
-                        >
-                          <ChevronRight className="w-4 h-4 shrink-0 text-[#666]" />
-                          <span className="text-sm">{child.label}</span>
-                        </Link>
-                      )
-                    })}
+                      {isExpanded ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
+                    </button>
+                    {isExpanded &&
+                      item.children.map((child) => {
+                        const isActive = pathname === child.href || pathname.startsWith(child.href + '/')
+                        const childBg = isActive
+                          ? isDevamEden(child.href)
+                            ? 'bg-red-600/90 hover:bg-red-700'
+                            : isTamamlanan(child.href)
+                              ? 'bg-green-600/90 hover:bg-green-700'
+                              : 'bg-[#1e282c]'
+                          : 'hover:bg-[#1e282c]'
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={onClose}
+                            className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded transition-colors ${childBg} ${
+                              isActive ? 'text-white' : 'text-[#b8c7ce] hover:text-white'
+                            }`}
+                          >
+                            <ChevronRight className={`w-4 h-4 shrink-0 ${isActive ? 'text-white/80' : 'text-[#666]'}`} />
+                            <span className="text-sm">{child.label}</span>
+                          </Link>
+                        )
+                      })}
                   </div>
                 )
               }

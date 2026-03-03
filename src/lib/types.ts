@@ -162,6 +162,7 @@ export interface WorkLog {
   work_type: ServiceType
   work_quantity?: number
   status: 'beklemede' | 'onaylandi' | 'reddedildi'
+  hakedis_yapildi?: boolean
   approved_by?: string
   approved_at?: string
   created_at: string

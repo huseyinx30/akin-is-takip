@@ -25,6 +25,30 @@ export default async function DashboardLayout({
 
   let pendingCount = 0
   let pendingExpenses: { id: string; description: string; amount: number; expense_date: string; type: 'personnel' | 'team'; detayUrl: string; profileName: string }[] = []
+  let notificationCount = 0
+  let messageCount = 0
+  let recentNotifications: { id: string; type: string; title: string; body: string | null; link_url: string | null; read_at: string | null; created_at: string }[] = []
+  let recentMessages: { id: string; content: string; sender_id: string; receiver_id: string; read_at: string | null; created_at: string }[] = []
+
+  const { data: profileData } = await supabase.from('profiles').select('id').eq('user_id', user!.id).single()
+
+  if (profileData) {
+    const [notifRes, notifCountRes, msgRes, msgCountRes] = await Promise.all([
+      supabase.from('notifications').select('id, type, title, body, link_url, read_at, created_at').eq('profile_id', profileData.id).is('read_at', null).order('created_at', { ascending: false }).limit(5),
+      supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('profile_id', profileData.id).is('read_at', null),
+      supabase.from('messages').select('id, content, sender_id, receiver_id, read_at, created_at').eq('receiver_id', profileData.id).is('read_at', null).order('created_at', { ascending: false }).limit(5),
+      supabase.from('messages').select('*', { count: 'exact', head: true }).eq('receiver_id', profileData.id).is('read_at', null),
+    ])
+    if (!notifRes.error) {
+      notificationCount = notifCountRes.count || 0
+      recentNotifications = notifRes.data || []
+    }
+    if (!msgRes.error) {
+      messageCount = msgCountRes.count || 0
+      recentMessages = msgRes.data || []
+    }
+  }
+
   if (role === 'admin') {
     const [
       { data: pExp, count: pCount },
@@ -43,7 +67,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardWrapper role={role} userName={userName} pendingCount={pendingCount} pendingExpenses={pendingExpenses}>
+    <DashboardWrapper role={role} userName={userName} pendingCount={pendingCount} pendingExpenses={pendingExpenses} notificationCount={notificationCount} messageCount={messageCount} recentNotifications={recentNotifications} recentMessages={recentMessages}>
       {children}
     </DashboardWrapper>
   )

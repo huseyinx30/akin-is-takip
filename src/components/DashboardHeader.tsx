@@ -15,12 +15,35 @@ interface PendingExpense {
   profileName: string
 }
 
+interface Notification {
+  id: string
+  type: string
+  title: string
+  body: string | null
+  link_url: string | null
+  read_at: string | null
+  created_at: string
+}
+
+interface Message {
+  id: string
+  content: string
+  sender_id: string
+  receiver_id: string
+  read_at: string | null
+  created_at: string
+}
+
 interface DashboardHeaderProps {
   userName: string
   onMenuClick: () => void
   pendingCount?: number
   pendingExpenses?: PendingExpense[]
   role?: string
+  notificationCount?: number
+  messageCount?: number
+  recentNotifications?: Notification[]
+  recentMessages?: Message[]
 }
 
 const breadcrumbMap: Record<string, string> = {
@@ -38,21 +61,31 @@ const breadcrumbMap: Record<string, string> = {
   '/dashboard/harcamalarim': 'Harcamalarım',
   '/dashboard/is-kayitlarim': 'İş Kayıtlarım',
   '/dashboard/odemelerim': 'Ödemelerim',
+  '/dashboard/bildirimler': 'Bildirimler',
+  '/dashboard/mesajlar': 'Mesajlar',
 }
 
-export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendingExpenses = [], role }: DashboardHeaderProps) {
+export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendingExpenses = [], role, notificationCount = 0, messageCount = 0, recentNotifications = [], recentMessages = [] }: DashboardHeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
   const basePath = pathname.replace(/\/[^/]+$/, '') || '/dashboard'
   const currentPage = breadcrumbMap[pathname] || breadcrumbMap[basePath] || 'Dashboard'
   const [openDropdown, setOpenDropdown] = useState<'expenses' | 'bell' | 'chat' | null>(null)
   const [expenses, setExpenses] = useState(pendingExpenses)
+  const [notifications, setNotifications] = useState(recentNotifications)
+  const [messages, setMessages] = useState(recentMessages)
   const [loading, setLoading] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setExpenses(pendingExpenses)
   }, [pendingExpenses])
+  useEffect(() => {
+    setNotifications(recentNotifications)
+  }, [recentNotifications])
+  useEffect(() => {
+    setMessages(recentMessages)
+  }, [recentMessages])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -66,6 +99,24 @@ export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendi
 
   const toggleDropdown = (key: 'expenses' | 'bell' | 'chat') => {
     setOpenDropdown((prev) => (prev === key ? null : key))
+  }
+
+  const handleNotificationClick = async (n: Notification) => {
+    setOpenDropdown(null)
+    if (n.link_url) {
+      await fetch(`/api/notifications/${n.id}/read`, { method: 'POST' })
+      setNotifications((prev) => prev.filter((x) => x.id !== n.id))
+      router.push(n.link_url)
+      router.refresh()
+    }
+  }
+
+  const handleMessageClick = async (m: Message) => {
+    setOpenDropdown(null)
+    await fetch(`/api/messages/${m.id}/read`, { method: 'POST' })
+    setMessages((prev) => prev.filter((x) => x.id !== m.id))
+    router.push('/dashboard/mesajlar')
+    router.refresh()
   }
 
   const handleApprove = async (id: string, type: 'personnel' | 'team') => {
@@ -159,25 +210,34 @@ export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendi
             <button
               onClick={() => toggleDropdown('bell')}
               className="p-2 hover:bg-white/10 rounded-lg relative"
+              title="Bildirimler"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">
-                12
-              </span>
+              {notificationCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-1 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">
+                  {notificationCount > 99 ? '99+' : notificationCount}
+                </span>
+              )}
             </button>
             {openDropdown === 'bell' && (
               <div className="fixed left-4 right-4 top-[5.5rem] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-1 sm:w-72 w-auto max-w-none sm:max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
                 <div className="px-4 py-2 border-b border-[#e3e6f0]">
                   <p className="font-semibold text-[#333]">Bildirimler</p>
-                  <p className="text-xs text-[#555]">12 okunmamış bildirim</p>
+                  <p className="text-xs text-[#555]">{notificationCount} okunmamış bildirim</p>
                 </div>
                 <div className="max-h-60 overflow-y-auto">
-                  <div className="px-4 py-3 hover:bg-[#f8f9fc] cursor-pointer border-b border-[#e3e6f0]">
-                    <p className="text-sm font-medium text-[#333]">Yeni bildirim</p>
-                    <p className="text-xs text-[#555]">Henüz bildirim yok</p>
-                  </div>
+                  {notifications.length > 0 ? (
+                    notifications.map((n) => (
+                      <div key={n.id} onClick={() => handleNotificationClick(n)} className="px-4 py-3 hover:bg-[#f8f9fc] cursor-pointer border-b border-[#e3e6f0]">
+                        <p className="text-sm font-medium text-[#333]">{n.title}</p>
+                        <p className="text-xs text-[#555] truncate">{n.body || ''}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-6 text-center text-[#555] text-sm">Bildirim yok</div>
+                  )}
                 </div>
-                <Link href="/dashboard" className="block px-4 py-2 text-center text-sm text-[#3c8dbc] hover:bg-[#f8f9fc] font-medium">
+                <Link href="/dashboard/bildirimler" onClick={() => setOpenDropdown(null)} className="block px-4 py-2 text-center text-sm text-[#3c8dbc] hover:bg-[#f8f9fc] font-medium">
                   Tümünü gör
                 </Link>
               </div>
@@ -187,25 +247,34 @@ export function DashboardHeader({ userName, onMenuClick, pendingCount = 0, pendi
             <button
               onClick={() => toggleDropdown('chat')}
               className="p-2 hover:bg-white/10 rounded-lg relative"
+              title="Mesajlar"
             >
               <MessageCircle className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">
-                15
-              </span>
+              {messageCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-1 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">
+                  {messageCount > 99 ? '99+' : messageCount}
+                </span>
+              )}
             </button>
             {openDropdown === 'chat' && (
               <div className="fixed left-4 right-4 top-[5.5rem] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-1 sm:w-72 w-auto max-w-none sm:max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-[#e3e6f0] py-2 z-50">
                 <div className="px-4 py-2 border-b border-[#e3e6f0]">
-                  <p className="font-semibold text-[#333]">Sohbetler</p>
-                  <p className="text-xs text-[#555]">15 okunmamış sohbet</p>
+                  <p className="font-semibold text-[#333]">Mesajlar</p>
+                  <p className="text-xs text-[#555]">{messageCount} okunmamış mesaj</p>
                 </div>
                 <div className="max-h-60 overflow-y-auto">
-                  <div className="px-4 py-3 hover:bg-[#f8f9fc] cursor-pointer border-b border-[#e3e6f0]">
-                    <p className="text-sm font-medium text-[#333]">Yeni sohbet</p>
-                    <p className="text-xs text-[#555]">Henüz sohbet yok</p>
-                  </div>
+                  {messages.length > 0 ? (
+                    messages.map((m) => (
+                      <div key={m.id} onClick={() => handleMessageClick(m)} className="px-4 py-3 hover:bg-[#f8f9fc] cursor-pointer border-b border-[#e3e6f0]">
+                        <p className="text-sm font-medium text-[#333]">Yeni mesaj</p>
+                        <p className="text-xs text-[#555] truncate">{m.content}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-6 text-center text-[#555] text-sm">Mesaj yok</div>
+                  )}
                 </div>
-                <Link href="/dashboard" className="block px-4 py-2 text-center text-sm text-[#3c8dbc] hover:bg-[#f8f9fc] font-medium">
+                <Link href="/dashboard/mesajlar" onClick={() => setOpenDropdown(null)} className="block px-4 py-2 text-center text-sm text-[#3c8dbc] hover:bg-[#f8f9fc] font-medium">
                   Tümünü gör
                 </Link>
               </div>

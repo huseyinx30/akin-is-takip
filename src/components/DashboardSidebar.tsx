@@ -22,6 +22,8 @@ import {
   ChevronDown,
   ChevronRight,
   Receipt,
+  Bell,
+  MessageCircle,
 } from 'lucide-react'
 import type { UserRole } from '@/lib/types'
 
@@ -48,6 +50,8 @@ const navItems: NavItem[] = [
   { href: '/dashboard/harcamalarim', label: 'Harcamalarım', icon: CreditCard, roles: ['personel', 'ekip'] },
   { href: '/dashboard/is-kayitlarim', label: 'İş Kayıtlarım', icon: ClipboardList, roles: ['personel', 'ekip'] },
   { href: '/dashboard/odemelerim', label: 'Ödemelerim', icon: Banknote, roles: ['personel', 'ekip'] },
+  { href: '/dashboard/bildirimler', label: 'Bildirimler', icon: Bell, roles: ['admin', 'personel', 'ekip'] },
+  { href: '/dashboard/mesajlar', label: 'Mesajlar', icon: MessageCircle, roles: ['admin', 'personel', 'ekip'] },
 ]
 
 interface DashboardSidebarProps {

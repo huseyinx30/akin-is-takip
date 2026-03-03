@@ -56,9 +56,10 @@ interface DevamEdenIslerClientProps {
   profiles: Profile[]
   allProjects: ProjectFull[]
   cities: City[]
+  currentAdmin: { id: string; full_name: string; role: string } | null
 }
 
-export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, cities }: DevamEdenIslerClientProps) {
+export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, cities, currentAdmin }: DevamEdenIslerClientProps) {
   const searchParams = useSearchParams()
   const projectParam = searchParams.get('project')
   const [projects, setProjects] = useState(initialProjects)
@@ -73,7 +74,7 @@ export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, c
   const [addForm, setAddForm] = useState({
     project_id: '',
     city_id: '',
-    assignee_id: '',
+    assignee_id: currentAdmin?.id || '',
     work_date: new Date().toISOString().split('T')[0],
     work_type: 'kurulum',
     description: '',
@@ -193,15 +194,17 @@ export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, c
     return '-'
   }
 
+  const assigneeOptions = [...(currentAdmin ? [{ id: currentAdmin.id, full_name: currentAdmin.full_name, role: currentAdmin.role }] : []), ...profiles]
+
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!addForm.assignee_id) {
       alert('Personel veya ekip seçin.')
       return
     }
-    const assignee = profiles.find((p) => p.id === addForm.assignee_id)
+    const assignee = assigneeOptions.find((p) => p.id === addForm.assignee_id)
     if (!assignee) return
-    const personel_id = assignee.role === 'personel' ? addForm.assignee_id : null
+    const personel_id = assignee.role === 'ekip' ? null : addForm.assignee_id
     const ekip_id = assignee.role === 'ekip' ? addForm.assignee_id : null
 
     setAddLoading(true)
@@ -222,7 +225,7 @@ export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, c
     setAddLoading(false)
     if (res.ok) {
       setShowAddForm(false)
-      setAddForm({ project_id: '', city_id: '', assignee_id: '', work_date: new Date().toISOString().split('T')[0], work_type: 'kurulum', description: '', work_quantity: '' })
+      setAddForm({ project_id: '', city_id: '', assignee_id: currentAdmin?.id || '', work_date: new Date().toISOString().split('T')[0], work_type: 'kurulum', description: '', work_quantity: '' })
       router.refresh()
       loadLogs()
       if (selectedProjectId && addForm.project_id === selectedProjectId) {
@@ -252,7 +255,10 @@ export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, c
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShowAddForm(true)}
+          onClick={() => {
+            setAddForm((f) => ({ ...f, assignee_id: currentAdmin?.id || '' }))
+            setShowAddForm(true)
+          }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3c8dbc] hover:bg-[#367fa9] text-white font-medium"
         >
           <Plus className="w-4 h-4" />
@@ -460,8 +466,8 @@ export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, c
                 <select value={addForm.assignee_id} onChange={(e) => setAddForm({ ...addForm, assignee_id: e.target.value })} required
                   className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] bg-white">
                   <option value="">Seçin</option>
-                  {profiles.map((p) => (
-                    <option key={p.id} value={p.id}>{p.full_name} ({p.role === 'personel' ? 'Personel' : 'Ekip'})</option>
+                  {assigneeOptions.map((p) => (
+                    <option key={p.id} value={p.id}>{p.full_name} ({p.role === 'admin' ? 'Admin' : p.role === 'personel' ? 'Personel' : 'Ekip'})</option>
                   ))}
                 </select>
               </div>

@@ -11,7 +11,7 @@ export default async function DevamEdenIslerPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/giris')
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('user_id', user.id).single()
+  const { data: profile } = await supabase.from('profiles').select('id, full_name, role').eq('user_id', user.id).single()
   if (profile?.role !== 'admin') redirect('/dashboard')
 
   const { data: projectsWithCount } = await supabase
@@ -51,6 +51,7 @@ export default async function DevamEdenIslerPage() {
           profiles={profiles || []}
           allProjects={allProjects || []}
           cities={cities || []}
+          currentAdmin={profile ? { id: profile.id, full_name: profile.full_name, role: profile.role } : null}
         />
       </Suspense>
     </div>

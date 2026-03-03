@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { WhatsAppLink } from '@/components/WhatsAppLink'
 import { OnayBekleyenHarcamalar } from './OnayBekleyenHarcamalar'
 import { OdemeEkle } from './OdemeEkle'
+import { TumHarcamalar } from './TumHarcamalar'
+import { TumOdemeler } from './TumOdemeler'
+import { PersonelSil } from './PersonelSil'
 import { Receipt, CheckCircle, Clock, Wallet, TrendingUp, XCircle } from 'lucide-react'
 
 export default async function PersonelDetayPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,7 +35,7 @@ export default async function PersonelDetayPage({ params }: { params: Promise<{ 
       <Link href="/dashboard/personeller" className="text-[#3c8dbc] hover:underline mb-4 inline-block font-medium">← Personellere dön</Link>
 
       <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-6 mb-6">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-wrap justify-between items-start gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[#333]">{profile.full_name}</h1>
             <p className="text-[#555] mt-1">{profile.phone || '-'}</p>
@@ -40,8 +43,9 @@ export default async function PersonelDetayPage({ params }: { params: Promise<{ 
               <WhatsAppLink phone={profile.whatsapp} className="mt-2" />
             )}
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 flex items-center gap-3">
             <OdemeEkle personelId={id} />
+            <PersonelSil personelId={id} personelAdi={profile.full_name} />
           </div>
         </div>
       </div>
@@ -77,29 +81,10 @@ export default async function PersonelDetayPage({ params }: { params: Promise<{ 
 
       <OnayBekleyenHarcamalar personelId={id} />
 
-      <div className="grid md:grid-cols-2 gap-8 mt-8">
-        <div className="bg-white rounded-lg shadow-md border border-[#e3e6f0] p-6">
-          <h2 className="text-lg font-medium text-[#333] mb-4">Son Harcamalar</h2>
-          <div className="space-y-2">
-            {expenses?.slice(0, 5).map((e) => (
-              <div key={e.id} className="flex justify-between p-3 bg-[#f8f9fc] rounded-lg border border-[#e3e6f0]">
-                <span className="text-[#555]">{e.description} ({e.expense_date})</span>
-                <span className="text-[#333] font-medium">{Number(e.amount).toLocaleString('tr-TR')} ₺</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-md border border-[#e3e6f0] p-6">
-          <h2 className="text-lg font-medium text-[#333] mb-4">Son Ödemeler</h2>
-          <div className="space-y-2">
-            {payments?.slice(0, 5).map((p) => (
-              <div key={p.id} className="flex justify-between p-3 bg-[#f8f9fc] rounded-lg border border-[#e3e6f0]">
-                <span className="text-[#555]">{p.payment_date}</span>
-                <span className="text-[#00a65a] font-medium">{Number(p.amount).toLocaleString('tr-TR')} ₺</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      <TumHarcamalar personelId={id} />
+
+      <div className="mt-8">
+        <TumOdemeler personelId={id} />
       </div>
     </div>
   )

@@ -20,6 +20,7 @@ import {
   CheckCircle,
   Wallet,
   Receipt,
+  XCircle,
 } from 'lucide-react'
 import { AdminDashboardChart } from '@/components/AdminDashboardChart'
 import { KalanOdemeKarti } from '@/components/KalanOdemeKarti'
@@ -62,6 +63,8 @@ export default async function DashboardPage() {
       const onaylananHarcama = expenses.filter((e) => e.status === 'onaylandi').reduce((s, e) => s + Number(e.amount), 0)
       const bekleyenHarcama = expenses.filter((e) => e.status === 'beklemede').reduce((s, e) => s + Number(e.amount), 0)
       const bekleyenAdet = expenses.filter((e) => e.status === 'beklemede').length
+      const reddedilenHarcama = expenses.filter((e) => e.status === 'reddedildi').reduce((s, e) => s + Number(e.amount), 0)
+      const reddedilenAdet = expenses.filter((e) => e.status === 'reddedildi').length
       const toplamOdeme = payments.reduce((s, p) => s + Number(p.amount), 0)
       const kalanAlacak = onaylananHarcama - toplamOdeme
 
@@ -70,6 +73,8 @@ export default async function DashboardPage() {
         onaylananHarcama,
         bekleyenHarcama,
         bekleyenAdet,
+        reddedilenHarcama,
+        reddedilenAdet,
         toplamOdeme,
         kalanAlacak,
         recentExpenses: recentExpenses.data || [],
@@ -343,7 +348,7 @@ export default async function DashboardPage() {
       {(role === 'personel' || role === 'ekip') && personelEkipStats && (
         <>
           {/* Özet Kartları */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
             <Link href="/dashboard/harcamalarim" className="block">
               <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 hover:shadow-lg hover:border-[#dd4b39]/30 transition-all">
                 <div className="flex justify-between items-start">
@@ -388,6 +393,23 @@ export default async function DashboardPage() {
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-[#f39c12]/15 flex items-center justify-center">
                     <Clock className="w-6 h-6 text-[#f39c12]" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/dashboard/harcamalarim?durum=reddedildi" className="block">
+              <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-5 hover:shadow-lg hover:border-[#dd4b39]/30 transition-all">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[#555] text-sm font-medium">Reddedilen Harcama</p>
+                    <p className="text-xl font-bold text-[#dd4b39] mt-1">{personelEkipStats.reddedilenHarcama.toLocaleString('tr-TR')} ₺</p>
+                    <p className="text-xs text-[#555] mt-1 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" /> {personelEkipStats.reddedilenAdet} adet
+                    </p>
+                  </div>
+                  <div className="w-11 h-11 rounded-xl bg-[#dd4b39]/15 flex items-center justify-center">
+                    <XCircle className="w-6 h-6 text-[#dd4b39]" />
                   </div>
                 </div>
               </div>

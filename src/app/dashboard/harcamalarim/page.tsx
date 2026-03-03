@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
@@ -19,6 +20,8 @@ const statusLabels: Record<string, string> = {
 }
 
 export default function HarcamalarimPage() {
+  const searchParams = useSearchParams()
+  const durumFilter = searchParams.get('durum') || ''
   const [expenses, setExpenses] = useState<any[]>([])
   const [profile, setProfile] = useState<{ id: string; role: string } | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -77,6 +80,11 @@ export default function HarcamalarimPage() {
     setLoading(false)
   }
 
+  const filteredExpenses = useMemo(() => {
+    if (!durumFilter) return expenses
+    return expenses.filter((e) => e.status === durumFilter)
+  }, [expenses, durumFilter])
+
   if (!profile) return <div className="p-8 text-[#555]">Yükleniyor...</div>
 
   return (
@@ -84,7 +92,9 @@ export default function HarcamalarimPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#333]">Harcamalarım</h1>
-          <p className="text-[#555] text-sm mt-0.5">Harcama kayıtlarınız ve onay durumları</p>
+          <p className="text-[#555] text-sm mt-0.5">
+            {durumFilter === 'reddedildi' ? 'Reddedilen harcamalar' : durumFilter === 'onaylandi' ? 'Onaylanan harcamalar' : durumFilter === 'beklemede' ? 'Bekleyen harcamalar' : 'Harcama kayıtlarınız ve onay durumları'}
+          </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -134,8 +144,14 @@ export default function HarcamalarimPage() {
         </form>
       )}
 
+      {durumFilter && (
+        <Link href="/dashboard/harcamalarim" className="inline-block text-[#3c8dbc] hover:underline text-sm font-medium mb-4">
+          ← Tüm harcamalara dön
+        </Link>
+      )}
+
       <div className="space-y-4">
-        {expenses.map((e) => (
+        {filteredExpenses.map((e) => (
           <div key={e.id} className="bg-white rounded-lg shadow-md border border-[#e3e6f0] p-6 flex justify-between items-center">
             <div>
               <div className="font-medium text-[#333]">{e.description}</div>
@@ -151,9 +167,9 @@ export default function HarcamalarimPage() {
         ))}
       </div>
 
-      {expenses.length === 0 && !showForm && (
+      {filteredExpenses.length === 0 && !showForm && (
         <div className="bg-white rounded-lg shadow-md border border-[#e3e6f0] p-12 text-center text-[#555]">
-          Henüz harcama kaydınız yok. Yeni harcama eklemek için yukarıdaki butonu kullanın.
+          {durumFilter ? 'Bu filtreye uygun harcama bulunamadı.' : 'Henüz harcama kaydınız yok. Yeni harcama eklemek için yukarıdaki butonu kullanın.'}
         </div>
       )}
     </div>

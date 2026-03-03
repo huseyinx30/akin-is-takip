@@ -89,8 +89,13 @@ export function TamamlananIslerClient({ initialProjects, profiles }: TamamlananI
     if (res.ok) {
       router.refresh()
       loadLogs()
-      const proj = projects.find((p) => p.id === selectedProjectId)
-      if (proj) setProjects((prev) => prev.map((p) => p.id === selectedProjectId ? { ...p, count: Math.max(0, p.count - 1) } : p)))
+      if (selectedProjectId) {
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === selectedProjectId ? { ...p, count: Math.max(0, p.count - 1) } : p
+          )
+        )
+      }
     } else {
       const d = await res.json()
       alert(d.error || 'Silme başarısız')

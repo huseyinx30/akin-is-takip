@@ -33,6 +33,11 @@ export default async function DevamEdenIslerPage() {
 
   const { data: profiles } = await supabase.from('profiles').select('id, full_name, role').in('role', ['personel', 'ekip']).order('full_name')
 
+  const [{ data: allProjects }, { data: cities }] = await Promise.all([
+    supabase.from('projects').select('id, name, city_id').eq('status', 'aktif').order('name'),
+    supabase.from('cities').select('id, name').order('name'),
+  ])
+
   return (
     <div>
       <div className="mb-6">
@@ -44,6 +49,8 @@ export default async function DevamEdenIslerPage() {
         <DevamEdenIslerClient
           initialProjects={projects}
           profiles={profiles || []}
+          allProjects={allProjects || []}
+          cities={cities || []}
         />
       </Suspense>
     </div>

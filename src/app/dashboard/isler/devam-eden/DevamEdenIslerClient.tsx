@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, Pencil, Trash2, CheckCircle, FolderKanban } from 'lucide-react'
+import { Eye, Pencil, Trash2, CheckCircle, FolderKanban, Plus } from 'lucide-react'
 
 const workTypes: Record<string, string> = {
   kurulum: 'Kurulum',
@@ -40,12 +40,25 @@ interface WorkLog {
   ekip?: { full_name: string }
 }
 
+interface ProjectFull {
+  id: string
+  name: string
+  city_id: string | null
+}
+
+interface City {
+  id: string
+  name: string
+}
+
 interface DevamEdenIslerClientProps {
   initialProjects: Project[]
   profiles: Profile[]
+  allProjects: ProjectFull[]
+  cities: City[]
 }
 
-export function DevamEdenIslerClient({ initialProjects, profiles }: DevamEdenIslerClientProps) {
+export function DevamEdenIslerClient({ initialProjects, profiles, allProjects, cities }: DevamEdenIslerClientProps) {
   const searchParams = useSearchParams()
   const projectParam = searchParams.get('project')
   const [projects, setProjects] = useState(initialProjects)
@@ -56,6 +69,17 @@ export function DevamEdenIslerClient({ initialProjects, profiles }: DevamEdenIsl
   const [detailLog, setDetailLog] = useState<WorkLog | null>(null)
   const [editLog, setEditLog] = useState<WorkLog | null>(null)
   const [editForm, setEditForm] = useState({ work_date: '', work_type: 'kurulum', description: '', work_quantity: '' })
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addForm, setAddForm] = useState({
+    project_id: '',
+    city_id: '',
+    assignee_id: '',
+    work_date: new Date().toISOString().split('T')[0],
+    work_type: 'kurulum',
+    description: '',
+    work_quantity: '',
+  })
+  const [addLoading, setAddLoading] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -84,6 +108,10 @@ export function DevamEdenIslerClient({ initialProjects, profiles }: DevamEdenIsl
       setLogs([])
     }
   }, [selectedProjectId, loadLogs])
+
+  useEffect(() => {
+    setProjects(initialProjects)
+  }, [initialProjects])
 
   const handleApprove = async (id: string) => {
     const res = await fetch(`/api/work-logs/${id}`, {
@@ -165,8 +193,72 @@ export function DevamEdenIslerClient({ initialProjects, profiles }: DevamEdenIsl
     return '-'
   }
 
+  const handleAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!addForm.assignee_id) {
+      alert('Personel veya ekip seçin.')
+      return
+    }
+    const assignee = profiles.find((p) => p.id === addForm.assignee_id)
+    if (!assignee) return
+    const personel_id = assignee.role === 'personel' ? addForm.assignee_id : null
+    const ekip_id = assignee.role === 'ekip' ? addForm.assignee_id : null
+
+    setAddLoading(true)
+    const res = await fetch('/api/work-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project_id: addForm.project_id,
+        city_id: addForm.city_id || null,
+        personel_id,
+        ekip_id,
+        work_date: addForm.work_date,
+        work_type: addForm.work_type,
+        description: addForm.description,
+        work_quantity: addForm.work_quantity || null,
+      }),
+    })
+    setAddLoading(false)
+    if (res.ok) {
+      setShowAddForm(false)
+      setAddForm({ project_id: '', city_id: '', assignee_id: '', work_date: new Date().toISOString().split('T')[0], work_type: 'kurulum', description: '', work_quantity: '' })
+      router.refresh()
+      loadLogs()
+      if (selectedProjectId && addForm.project_id === selectedProjectId) {
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === selectedProjectId ? { ...p, count: p.count + 1 } : p
+          )
+        )
+      } else if (addForm.project_id) {
+        const proj = allProjects.find((p) => p.id === addForm.project_id)
+        if (proj && !projects.some((p) => p.id === proj.id)) {
+          setProjects((prev) => [...prev, { id: proj.id, name: proj.name, count: 1 }])
+        } else if (proj) {
+          setProjects((prev) =>
+            prev.map((p) => (p.id === proj.id ? { ...p, count: p.count + 1 } : p))
+          )
+        }
+      }
+    } else {
+      const d = await res.json()
+      alert(d.error || 'İş eklenirken hata oluştu')
+    }
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowAddForm(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3c8dbc] hover:bg-[#367fa9] text-white font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          İş Ekle
+        </button>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {projects.map((p) => (
           <button
@@ -335,6 +427,73 @@ export function DevamEdenIslerClient({ initialProjects, profiles }: DevamEdenIsl
               <div className="flex gap-2">
                 <button type="submit" className="px-4 py-2.5 rounded-lg bg-[#3c8dbc] text-white font-medium hover:bg-[#367fa9]">Kaydet</button>
                 <button type="button" onClick={() => setEditLog(null)} className="px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] hover:bg-[#f8f9fc]">İptal</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* İş Ekle Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowAddForm(false)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-lg text-[#333] mb-4">Yeni İş Kaydı Ekle</h3>
+            <form onSubmit={handleAddSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#333] mb-1">Proje *</label>
+                <select value={addForm.project_id} onChange={(e) => setAddForm({ ...addForm, project_id: e.target.value })} required
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] bg-white">
+                  <option value="">Seçin</option>
+                  {allProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#333] mb-1">İl *</label>
+                <select value={addForm.city_id} onChange={(e) => setAddForm({ ...addForm, city_id: e.target.value })} required
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] bg-white">
+                  <option value="">Seçin</option>
+                  {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#333] mb-1">Personel/Ekip *</label>
+                <select value={addForm.assignee_id} onChange={(e) => setAddForm({ ...addForm, assignee_id: e.target.value })} required
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] bg-white">
+                  <option value="">Seçin</option>
+                  {profiles.map((p) => (
+                    <option key={p.id} value={p.id}>{p.full_name} ({p.role === 'personel' ? 'Personel' : 'Ekip'})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#333] mb-1">İş Tarihi *</label>
+                  <input type="date" value={addForm.work_date} onChange={(e) => setAddForm({ ...addForm, work_date: e.target.value })} required
+                    className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#333] mb-1">İş Tipi</label>
+                  <select value={addForm.work_type} onChange={(e) => setAddForm({ ...addForm, work_type: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de] bg-white">
+                    {Object.entries(workTypes).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#333] mb-1">Açıklama *</label>
+                <textarea value={addForm.description} onChange={(e) => setAddForm({ ...addForm, description: e.target.value })} required rows={3}
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#333] mb-1">İş Adedi</label>
+                <input type="number" min="1" value={addForm.work_quantity} onChange={(e) => setAddForm({ ...addForm, work_quantity: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#d2d6de]" placeholder="Opsiyonel" />
+              </div>
+              <div className="flex gap-2">
+                <button type="submit" disabled={addLoading} className="px-4 py-2.5 rounded-lg bg-[#3c8dbc] text-white font-medium hover:bg-[#367fa9] disabled:opacity-50">
+                  {addLoading ? 'Ekleniyor...' : 'Ekle'}
+                </button>
+                <button type="button" onClick={() => setShowAddForm(false)} className="px-4 py-2.5 rounded-lg border border-[#d2d6de] text-[#333] hover:bg-[#f8f9fc]">İptal</button>
               </div>
             </form>
           </div>

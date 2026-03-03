@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { ClipboardList, CheckCircle2, Clock } from 'lucide-react'
 
 const workTypes = [
   { value: 'kurulum', label: 'Kurulum' },
@@ -87,6 +88,10 @@ export default function IsKayitlarimPage() {
     setLoading(false)
   }
 
+  const toplamAdet = logs.reduce((s, l) => s + (l.work_quantity ?? 0), 0)
+  const onaylananAdet = logs.filter((l) => l.status === 'onaylandi').reduce((s, l) => s + (l.work_quantity ?? 0), 0)
+  const beklemedeAdet = logs.filter((l) => l.status === 'beklemede').reduce((s, l) => s + (l.work_quantity ?? 0), 0)
+
   if (!profile) return <div className="p-8 text-[#555]">Yükleniyor...</div>
 
   return (
@@ -102,6 +107,36 @@ export default function IsKayitlarimPage() {
         >
           {showForm ? 'İptal' : '+ Yeni İş Kaydı'}
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 rounded-xl bg-[#3c8dbc]/10 flex items-center justify-center shrink-0">
+            <ClipboardList className="w-6 h-6 text-[#3c8dbc]" />
+          </div>
+          <div>
+            <p className="text-sm text-[#555] font-medium">Toplam Servis Adedi</p>
+            <p className="text-2xl font-bold text-[#333] mt-0.5">{toplamAdet}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 rounded-xl bg-[#00a65a]/10 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-[#00a65a]" />
+          </div>
+          <div>
+            <p className="text-sm text-[#00a65a] font-medium">Onaylanan Servis Adedi</p>
+            <p className="text-2xl font-bold text-[#00a65a] mt-0.5">{onaylananAdet}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-md border border-[#e3e6f0] p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 rounded-xl bg-[#f39c12]/10 flex items-center justify-center shrink-0">
+            <Clock className="w-6 h-6 text-[#f39c12]" />
+          </div>
+          <div>
+            <p className="text-sm text-[#f39c12] font-medium">Beklemede Olan Servis Adedi</p>
+            <p className="text-2xl font-bold text-[#f39c12] mt-0.5">{beklemedeAdet}</p>
+          </div>
+        </div>
       </div>
 
       {showForm && (
